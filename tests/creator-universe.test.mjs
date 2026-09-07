@@ -25,7 +25,7 @@ test("sparse star refinement and occasional streak preserve safe modes", () => {
   assert.ok((263 * 271) / (235 * 242) > 1.2 && (263 * 271) / (235 * 242) < 1.3);
   assert.match(styles, /distant-streak 30s linear 3s infinite/);
   assert.match(styles, /3%,100% \{ opacity:0/);
-  for (const mode of ["reduced", "mobile-safe", "low-gpu"]) {
+  for (const mode of ["reduced", "low-gpu"]) {
     assert.match(styles, new RegExp(`data-motion-mode="${mode}".*distantStreak.*animation:none`));
   }
   assert.match(scene, /styles.distantStreak\} aria-hidden="true"/);
@@ -33,7 +33,7 @@ test("sparse star refinement and occasional streak preserve safe modes", () => {
 
 test("intro uses exact public media, session skip, guarded playback and mounted universe", async () => {
   const intro = await read("src/components/universe/UniverseIntro.tsx");
-  for (const file of ["ex-creator-universe-intro.mp4", "ex-creator-universe-intro-phone.mp4", "ex-creator-universe-mo.WAV"]) {
+  for (const file of ["ex-creator-universe-intro.mp4", "ex-creator-universe-intro-phone.mp4", "ex-creator-universe-mo.wav"]) {
     assert.equal(await exists(`public/video/${file}`), true);
     assert.ok(intro.includes(`/video/${file}`));
   }
@@ -64,6 +64,21 @@ test("cinematic bridge retains video and delays interaction with safe audio and 
   assert.match(styles, /width:96px/);
   assert.match(styles, /opacity:.78/);
   assert.match(styles, /twinkles i:nth-child\(6\)/);
+});
+
+test("production UX keeps mobile standard alive while deferring ambient activation", () => {
+  assert.match(styles, /brightness\(1.15\)/);
+  assert.match(styles, /galaxyNodeActive.*brightness\(1.34\)/);
+  assert.match(node, /styles.focusFilament/);
+  assert.match(scene, /MOBILE_STANDARD/);
+  assert.match(scene, /setAmbientReady\(true\), 450/);
+  assert.match(styles, /data-ambient-ready="false"/);
+  assert.match(styles, /mobile-streak 12s/);
+  assert.match(styles, /mobile-breathe var\(--breath-duration\)/);
+  assert.match(styles, /54.6px/);
+  assert.match(motion, /deviceMemory \?\? 8\) <= 2 &&/);
+  assert.doesNotMatch(motion, /userAgent|deviceorientation/);
+  assert.equal((motion.match(/function tick\(/g) ?? []).length, 1);
 });
 
 test("Universe preview route is static and noindex", async () => {
@@ -139,7 +154,7 @@ test("attention releases monotonically in the existing demand-driven loop", () =
 });
 
 test("focused staging is bounded and uses stable layout rather than animated bounds", () => {
-  assert.match(motion, /isStack \? 14 : 36.4/);
+  assert.match(motion, /isStack \? 21 : 36.4/);
   assert.match(motion, /clamp\(\(parent.clientHeight \/ 2 - centerY\) \* .104, 23.4\)/);
   assert.match(motion, /node.element.offsetLeft/);
   assert.doesNotMatch(motion, /node.element.getBoundingClientRect/);
@@ -171,7 +186,7 @@ test("far galaxies use an original noninteractive subdued layer with low GPU fal
 });
 
 test("fine tuning adds bounded gain and asynchronous CSS pulses without another frame engine", () => {
-  assert.match(motion, /mode === "full" \? 1.4 : mode === "mobile-safe" \? 1.2 : 1/);
+  assert.match(motion, /mode === "full" \? 1.4 : mode === "mobile-safe" \? 1.8 : 1/);
   assert.match(styles, /@keyframes world-halo/);
   assert.match(styles, /0%,55%,100% \{ opacity:0/);
   assert.match(styles, /world-halo var\(--breath-duration\).*var\(--breath-phase\)/);

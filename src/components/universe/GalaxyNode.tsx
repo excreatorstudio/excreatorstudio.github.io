@@ -37,6 +37,7 @@ export function GalaxyNode({ galaxy, active, dimmed, onFocusGalaxy, onEnterGalax
       onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}
     >
       <span className={styles.galaxyVisual} aria-hidden="true">
+        <span className={styles.focusFilament} />
         <Image src={`/images/universe/${galaxy.id}-v2.png`} alt="" width={1254} height={1254} sizes="(max-width: 767px) 220px, 260px" unoptimized />
       </span>
       <span className={styles.galaxyCopy}>

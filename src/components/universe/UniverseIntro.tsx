@@ -48,7 +48,7 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
     setSource(matchMedia("(max-width: 767px)").matches
       ? "/video/ex-creator-universe-intro-phone.mp4"
       : "/video/ex-creator-universe-intro.mp4");
-    audio.src = "/video/ex-creator-universe-mo.WAV";
+    audio.src = "/video/ex-creator-universe-mo.wav";
     audio.volume = .35;
     // A single autoplay attempt. Never retry on unrelated clicks or bypass policy.
     void audio.play().then(() => { if (!finished) setAudioStatus("played"); })

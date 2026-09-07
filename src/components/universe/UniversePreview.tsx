@@ -20,9 +20,16 @@ export function UniversePreview() {
   const touchSelection = useRef<{ id: UniverseGalaxy["id"]; alreadyFocused: boolean } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [introActive, setIntroActive] = useState(true);
+  const [ambientReady, setAmbientReady] = useState(false);
   const [bridging, setBridging] = useState(false);
   const beginBridge = useCallback(() => setBridging(true), []);
   const completeIntro = useCallback(() => setIntroActive(false), []);
+
+  useEffect(() => {
+    if (introActive) return;
+    const timer = window.setTimeout(() => setAmbientReady(true), 450);
+    return () => window.clearTimeout(timer);
+  }, [introActive]);
 
   useEffect(() => {
     return () => {
@@ -53,7 +60,7 @@ export function UniversePreview() {
   };
 
   return (
-    <div className={`${styles.page} ${isTransitioning ? styles.pageTransitioning : ""}`} data-motion-mode={motionMode} data-intro-active={introActive} data-bridging={bridging && introActive}>
+    <div className={`${styles.page} ${isTransitioning ? styles.pageTransitioning : ""}`} data-motion-mode={motionMode} data-runtime-tier={motionMode === "full" ? "DESKTOP_FULL" : motionMode === "mobile-safe" ? "MOBILE_STANDARD" : motionMode === "low-gpu" ? "LOW_GPU" : "REDUCED_MOTION"} data-ambient-ready={ambientReady} data-intro-active={introActive} data-bridging={bridging && introActive}>
       {introActive ? <UniverseIntro onComplete={completeIntro} onBridge={beginBridge} /> : null}
       <div className={styles.atmosphere} aria-hidden="true">
         <span className={styles.atmosphereNebulaOne} />

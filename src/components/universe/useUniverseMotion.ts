@@ -21,7 +21,8 @@ export function useUniverseMotion() {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const mobile = matchMedia("(max-width: 767px)");
     const hardware = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-    const lowGpu = hardware.connection?.saveData === true || (hardware.deviceMemory ?? 8) <= 4 || navigator.hardwareConcurrency <= 4;
+    // Missing capability hints default to standard. Four cores alone are not low GPU.
+    const lowGpu = hardware.connection?.saveData === true || ((hardware.deviceMemory ?? 8) <= 2 && (navigator.hardwareConcurrency || 8) <= 2);
     const nodes = universeGalaxies.map(galaxy => ({
       galaxy, element: root.querySelector<HTMLElement>(`[data-galaxy="${galaxy.id}"]`)!, weight: 0,
       x: parseFloat(galaxy.position.x) / 50 - 1, y: parseFloat(galaxy.position.y) / 50 - 1,
@@ -74,7 +75,7 @@ export function useUniverseMotion() {
         else unsettled = true;
       }
       // Full spatial tension +40%; phone and low GPU keep a smaller envelope.
-      const driftGain = mode === "full" ? 1.4 : mode === "mobile-safe" ? 1.2 : 1;
+      const driftGain = mode === "full" ? 1.4 : mode === "mobile-safe" ? 1.8 : 1;
       root.style.setProperty("--pointer-x", (current.x * driftGain).toFixed(4));
       root.style.setProperty("--pointer-y", (current.y * driftGain).toFixed(4));
       root.style.setProperty("--focus-x", current.focusX.toFixed(4));
@@ -121,7 +122,7 @@ export function useUniverseMotion() {
           const centerX = node.element.offsetLeft + (isStack ? node.element.offsetWidth / 2 : 0);
           const centerY = node.element.offsetTop + (isStack ? node.element.offsetHeight / 2 : 0);
           const clamp = (value: number, limit: number) => Math.max(-limit, Math.min(limit, value));
-          node.element.style.setProperty("--center-shift-x", `${clamp((parent.clientWidth / 2 - centerX) * .13, isStack ? 14 : 36.4)}px`);
+          node.element.style.setProperty("--center-shift-x", `${clamp((parent.clientWidth / 2 - centerX) * (isStack ? .195 : .13), isStack ? 21 : 36.4)}px`);
           node.element.style.setProperty("--center-shift-y", `${isStack ? -6 : clamp((parent.clientHeight / 2 - centerY) * .104, 23.4)}px`);
           // A Z lift otherwise projects off-centre worlds further OUTWARD.
           // Cancel that displacement before adding the small inward staging.
@@ -139,7 +140,12 @@ export function useUniverseMotion() {
         wake();
         return; // Passive: scrolling remains owned by the browser, no proximity selection.
       }
-      if (mode === "mobile-safe") return;
+      if (mode === "mobile-safe") {
+        target.x = Math.max(-1, Math.min(1, event.clientX / window.innerWidth * 2 - 1));
+        target.y = Math.max(-1, Math.min(1, event.clientY / window.innerHeight * 2 - 1));
+        wake();
+        return;
+      }
       inside = true;
       const x = Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1));
       const y = Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1));

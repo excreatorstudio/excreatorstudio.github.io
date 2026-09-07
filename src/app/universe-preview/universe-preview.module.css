@@ -182,6 +182,32 @@
   .galaxyVisual::after { animation:none; }
   .galaxyNodeActive .galaxyVisual::after { animation:world-halo 17s ease-in-out -10s infinite; }
 }
+/* Production tuning: local brightness only; background exposure is unchanged. */
+.galaxyVisual img,.coreImage { filter:brightness(1.15); }
+.galaxyNodeActive .galaxyVisual img { filter:brightness(1.34); }
+.galaxyVisual::before { background:radial-gradient(ellipse,#c4ad8255,#879eb33b 38%,transparent 70%); }
+.focusFilament { position:absolute; inset:16% 7%; border:1px solid #d9c69a; border-radius:50%; transform:rotate(-24deg) scaleY(.66); opacity:calc(.04 + var(--focus-weight) * .48); mask-image:linear-gradient(110deg,transparent 8%,black 24%,transparent 48% 72%,black 90%); pointer-events:none; }
+.galaxyNodeActive .galaxyCopy > span { color:#d8d8d2; }
+.page[data-ambient-ready="false"] .twinkles i,
+.page[data-ambient-ready="false"] .distantStreak,
+.page[data-ambient-ready="false"] .galacticMist::after,
+.page[data-ambient-ready="false"] .orbitRing,
+.page[data-ambient-ready="false"] .galaxyVisual::after { animation-play-state:paused !important; }
+/* Avoid full-scene animated blur during video decode / handoff. */
+@keyframes bridge-universe { 0%,30% { transform:scale(1.04); opacity:.88; } 100% { transform:scale(1); opacity:1; } }
+@media (max-width:767px) {
+  .galaxyNode[data-galaxy] { transform:perspective(1000px) translate3d(calc((var(--focus-weight) * var(--center-shift-x) + var(--pointer-x) * 5px) * var(--motion-strength)),calc((var(--focus-weight) * -7px + var(--pointer-y) * 3px) * var(--motion-strength)),calc(var(--focus-weight) * 54.6px * var(--motion-strength))) scale(calc(1 + var(--focus-weight) * .045 * var(--motion-strength))); }
+  .galaxyVisual img { animation:mobile-breathe var(--breath-duration) ease-in-out var(--breath-phase) infinite; }
+  @keyframes mobile-breathe { 0%,100% { transform:translateY(-1px); opacity:.94; } 50% { transform:translateY(1px); opacity:1; } }
+  .depthFar { transform:translate3d(calc(var(--pointer-x) * -.5px * var(--motion-strength)),0,0); }
+  .depthBack { transform:translate3d(calc(var(--pointer-x) * -1px * var(--motion-strength)),calc(var(--pointer-y) * -.6px * var(--motion-strength)),0); }
+  .depthFront { display:block; inset:5% -35% 10%; opacity:.3; transform:translate3d(calc(var(--pointer-x) * 10px * var(--motion-strength)),calc(var(--pointer-y) * 6px * var(--motion-strength)),0) rotate(-14deg); }
+  .depthFront::after { display:none; }
+  .page[data-motion-mode="mobile-safe"] .distantStreak { display:block; left:6%; top:35%; width:56px; animation:mobile-streak 12s linear 4s infinite; }
+  .page[data-motion-mode="mobile-safe"] .streakSecond,.page[data-motion-mode="mobile-safe"] .streakThird { display:none; }
+  @keyframes mobile-streak { 0% { opacity:0; transform:translate(0,0) rotate(-24deg); } 3% { opacity:.65; } 7.5%,100% { opacity:0; transform:translate(40px,-18px) rotate(-24deg); } }
+  .galacticMist::after { animation:mist-breathe 28s ease-in-out -9s infinite; }
+}
 @media (prefers-reduced-motion: reduce) {
   .page *,.page *::before,.page *::after { animation:none !important; transition:none !important; }
   .pointerField { --motion-strength:0; }
