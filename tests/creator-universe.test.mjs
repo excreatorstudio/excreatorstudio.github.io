@@ -106,11 +106,14 @@ test("granted gyro clamps and damps real targets while preserving focus and sett
 });
 
 test("mobile round stars and one streak instance keep bounded asynchronous activity", () => {
-  assert.equal((scene.match(/<i \/>/g)??[]).length,8);
+  assert.equal((scene.match(/<i \/>/g)??[]).length,16);
   assert.match(styles,/border-radius:50%/);
   assert.match(styles,/@keyframes round-twinkle/);
+  assert.match(styles,/@keyframes secondary-twinkle/);
+  assert.match(styles,/nth-child\(n\+9\)/);
   assert.match(styles,/animation-duration:4.8s; animation-delay:-1.7s/);
-  assert.match(styles,/mobile-streak 27s/);
+  assert.match(styles,/mobile-streak 21s/);
+  assert.match(styles,/mobile-light-flow 17s/);
   assert.match(styles,/\.streakSecond,.*\.streakThird \{ display:none/);
   assert.match(styles,/data-motion-mode="low-gpu".*twinkles i:nth-child\(n\+4\).*display:none/);
   assert.match(styles,/animation:none !important/);
@@ -169,7 +172,8 @@ test("production UX keeps mobile standard alive while deferring ambient activati
   assert.match(scene, /MOBILE_GYRO.*MOBILE_TOUCH/);
   assert.match(scene, /setAmbientReady\(true\), 450/);
   assert.match(styles, /data-ambient-ready="false"/);
-  assert.match(styles, /mobile-streak 27s/);
+  assert.match(styles, /mobile-streak 21s/);
+  assert.match(styles, /mobile-light-flow 17s/);
   assert.match(styles, /mobile-breathe var\(--breath-duration\)/);
   assert.match(styles, /54.6px/);
   assert.match(motion, /deviceMemory \?\? 8\) <= 2 &&/);
@@ -313,4 +317,14 @@ test("cosmic background keeps separate faint layers and a non-cropping mobile fa
   assert.match(styles, /data-motion-mode="low-gpu".*galacticMist::after.*animation:none/);
   assert.match(styles, /pointer-x\) \* -2px/);
   assert.doesNotMatch(styles, /assets\/references/);
+});
+
+test("mobile depth tuning separates near, primary, far and deep planes", () => {
+  assert.match(styles, /Mobile depth planes deliberately move against one another/);
+  assert.match(styles, /var\(--pointer-x\) \* 28px/);
+  assert.match(styles, /var\(--pointer-x\) \* -5px/);
+  assert.match(styles, /var\(--pointer-x\) \* -2\.5px/);
+  assert.match(styles, /var\(--focus-weight\) \* 72px/);
+  assert.match(styles, /scale\(1\.015\)/);
+  assert.match(styles, /scale\(\.99\)/);
 });

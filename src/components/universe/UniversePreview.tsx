@@ -85,7 +85,8 @@ export function UniversePreview() {
             <div className={styles.distantStreak} aria-hidden="true" />
             <div className={`${styles.distantStreak} ${styles.streakSecond}`} aria-hidden="true" />
             <div className={`${styles.distantStreak} ${styles.streakThird}`} aria-hidden="true" />
-            <div className={styles.twinkles} aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /></div>
+            <div className={styles.mobileFlow} aria-hidden="true" />
+            <div className={styles.twinkles} aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
             <div className={styles.focusField} data-depth-layer="light" aria-hidden="true" />
             <div className={styles.localOrbit} data-depth-layer="local-orbit" aria-hidden="true" />
             <div className={styles.depthFront} data-depth-layer="front" aria-hidden="true" />
