@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
+import { createHash } from "node:crypto";
 import ts from "typescript";
 
 const root = new URL("../", import.meta.url);
@@ -327,4 +328,61 @@ test("mobile depth tuning separates near, primary, far and deep planes", () => {
   assert.match(styles, /var\(--focus-weight\) \* 72px/);
   assert.match(styles, /scale\(1\.015\)/);
   assert.match(styles, /scale\(\.99\)/);
+});
+
+test("Phase 2D destination ownership is unique and local routes exist", async () => {
+  const context = { exports:{} };
+  vm.runInNewContext(ts.transpileModule(navigation, { compilerOptions:{ module:ts.ModuleKind.CommonJS } }).outputText, context);
+  const galaxies = context.exports.universeGalaxies;
+  assert.deepEqual(Array.from(galaxies, g => g.title), ["創作", "知識", "語言", "洞察"]);
+  assert.equal(new Set(galaxies.map(g => g.href)).size, 4);
+  const owners = new Map();
+  for (const galaxy of galaxies) {
+    assert.ok(galaxy.destinations.length >= 1 && galaxy.destinations.length <= 4);
+    for (const href of [galaxy.href, ...galaxy.destinations.map(d => d.href)]) {
+      if (href.startsWith("#")) { assert.equal(href, "#language-destinations"); continue; }
+      assert.equal(await exists(`src/app${href}page.tsx`), true);
+      assert.ok(!owners.has(href) || owners.get(href) === galaxy.id, `Ambiguous product owner: ${href}`);
+      owners.set(href, galaxy.id);
+    }
+  }
+});
+
+test("Phase 2D header is preview-only utility navigation with no fake accounts", async () => {
+  const header = await read("src/components/Header.tsx");
+  const utility = await read("src/components/universe/UniverseHeader.tsx");
+  assert.match(header, /pathname === "\/universe-preview" \|\| pathname === "\/universe-preview\/"/);
+  for (const label of ["宇宙入口", "關於 E.X", "手機全域導覽"]) assert.ok(utility.includes(label));
+  assert.doesNotMatch(utility, /#membership|登入|點數|訂閱|創作|知識|語言|洞察/);
+  assert.match(utility, /href="\/"/);
+  assert.equal(await exists("docs/ex-creator-universe/phase-2d-navigation-map.md"), true);
+});
+
+test("Phase 2D one CTA focuses a real world and secondary links are separate accessible actions", () => {
+  assert.equal((scene.match(/data-primary-cta="true"/g) ?? []).length,1);
+  assert.match(scene, /創作、學習、語言與洞察，/);
+  assert.match(scene, /匯聚成你的 AI 工作宇宙。/);
+  assert.match(scene, /Start Exploring/);
+  assert.match(scene, /focus\(\{ preventScroll: true \}\)/);
+  assert.match(node, /inert=\{!active\}/);
+  assert.match(node, /tabIndex=\{active \? 0 : -1\}/);
+  assert.match(node, /<\/Link>\s*<nav/);
+  assert.match(node, /event.key === " "/);
+  assert.match(motion, /\[data-galaxy\]:focus-within/);
+});
+
+test("media candidates preserve original hashes and remain outside runtime source paths", async () => {
+  const audit = JSON.parse(await read("public/images/universe/candidates/audit.json"));
+  for (const image of audit.images) {
+    const bytes = await readFile(new URL(`public/images/universe/${image.name}.png`, root));
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), image.sha256);
+    for (const format of ["webp", "avif"]) assert.equal(await exists(`public/images/universe/candidates/${image.name}.${format}`),true);
+  }
+  for (const video of audit.videos) {
+    const bytes = await readFile(new URL(`public/video/${video.name}.mp4`,root));
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), video.sha256);
+    assert.equal(await exists(`public/video/${video.name}-web.mp4`),true);
+  }
+  assert.doesNotMatch(scene+node+core+styles, /\/candidates\//);
+  assert.doesNotMatch(await read("src/components/universe/UniverseIntro.tsx"), /-web\.mp4/);
 });

@@ -6,6 +6,7 @@ export type UniverseGalaxy = {
   title: string;
   subtitle: string;
   description: string;
+  destinations: readonly { label: string; english: string; href: string }[];
   href: string;
   status: UniverseGalaxyStatus;
   visualKey: string;
@@ -28,7 +29,12 @@ export const universeGalaxies: readonly UniverseGalaxy[] = [
     title: "創作",
     subtitle: "Create",
     description: "Auto Editing · AI Video · Creative Tools",
-    href: "/video-production/",
+    href: "/creator-academy/",
+    destinations: [
+      { label: "AI 影音", english: "AI Video", href: "/creator-academy/ai-visual-creation/yuni-ai-video-motion-basics/" },
+      { label: "攝影構圖", english: "Photography", href: "/creator-academy/photography-composition/yuni-composition-basics/" },
+      { label: "創作資源", english: "Creative Resources", href: "/creator-academy/resources/" },
+    ],
     status: "available",
     visualKey: "aperture",
     depth: "mid",
@@ -41,6 +47,11 @@ export const universeGalaxies: readonly UniverseGalaxy[] = [
     subtitle: "Knowledge",
     description: "AI Learning Station · Classroom · AI TA",
     href: "/ai-learning/",
+    destinations: [
+      { label: "教室", english: "Classroom", href: "/ai-learning/classroom/" },
+      { label: "實作練習", english: "Practice Lab", href: "/ai-learning/practice-lab/" },
+      { label: "知識庫", english: "Knowledge Hub", href: "/ai-learning/knowledge-hub/" },
+    ],
     status: "available",
     visualKey: "book",
     depth: "front",
@@ -52,7 +63,11 @@ export const universeGalaxies: readonly UniverseGalaxy[] = [
     title: "語言",
     subtitle: "Language",
     description: "English · Japanese",
-    href: "/japanese-learning/",
+    href: "#language-destinations",
+    destinations: [
+      { label: "英文學習", english: "English", href: "/english-learning/" },
+      { label: "日文學習", english: "Japanese", href: "/japanese-learning/" },
+    ],
     status: "available",
     visualKey: "network",
     depth: "mid",
@@ -65,6 +80,7 @@ export const universeGalaxies: readonly UniverseGalaxy[] = [
     subtitle: "Insight",
     description: "Market Radar · Research · Data",
     href: "/market-radar/",
+    destinations: [{ label: "房市快報", english: "Market Radar", href: "/market-radar/" }],
     status: "available",
     visualKey: "observatory",
     depth: "back",

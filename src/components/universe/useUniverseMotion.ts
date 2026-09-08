@@ -247,7 +247,7 @@ export function useUniverseMotion(enabled = true) {
       target.velocityX = target.velocityY = 0;
       target.x = listening ? lastSensorTarget.x : 0;
       target.y = listening ? lastSensorTarget.y : 0;
-      const focused = root.querySelector<HTMLElement>("[data-galaxy]:focus");
+      const focused = root.querySelector<HTMLElement>("[data-galaxy]:focus-within");
       focus((focused?.dataset.galaxy as GalaxyId) ?? null);
       wake();
     }

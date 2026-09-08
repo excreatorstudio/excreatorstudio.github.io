@@ -1,4 +1,31 @@
 .page { position:relative; min-height:calc(100svh - 4.75rem); overflow:clip; isolation:isolate; background:#020408; color:#ece7de; }
+/* Phase 2D: utility and copy only. Existing spatial transforms stay below. */
+.utilityHeader { min-height:4.75rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem max(1.25rem,4vw); background:#030812e8; border-bottom:1px solid #d4c19a14; color:#c9c5bd; position:relative; z-index:20; }
+.utilityBrand { display:flex; align-items:center; gap:.7rem; font-size:1.25rem; letter-spacing:.04em; color:#e8dcc5; white-space:nowrap; }
+.utilityBrand span { font-size:.62rem; letter-spacing:.18em; }
+.utilityDesktop { display:flex; gap:1.8rem; font-size:.73rem; }
+.utilityDesktop a,.utilityMobile a { padding:.5rem 0; }
+.utilityMobile { display:none; font-size:.7rem; }
+.utilityMobile summary { cursor:pointer; padding:.6rem; }
+.utilityMobile nav { position:absolute; right:1.25rem; top:4rem; display:grid; gap:.4rem; min-width:9rem; padding:.8rem 1rem; background:#07101bf5; border:1px solid #d4c19a25; }
+.utilityHeader a:focus-visible,.utilityMobile summary:focus-visible,.exploreButton:focus-visible,.galaxyMainAction:focus-visible,.secondaryDestinations a:focus-visible { outline:1px solid #dfc797; outline-offset:4px; border-radius:3px; }
+.heroCopy .valueProposition { font-size:.77rem; line-height:1.8; color:#bfc4cd; margin:.75rem 0 0; letter-spacing:.06em; }
+.heroCopy .valueEnglish { font-size:.52rem; color:#929ba7; letter-spacing:.12em; margin:.3rem 0 0; }
+.exploreButton { display:flex; align-items:baseline; gap:.7rem; pointer-events:auto; margin-top:.85rem; padding:.5rem 0; background:none; border:0; border-bottom:1px solid #cbb88b80; color:#e0cfaa; font-size:.76rem; cursor:pointer; }
+.exploreButton small { font-size:.52rem; color:#a9a59a; letter-spacing:.06em; }
+.galaxyMainAction { display:flex; flex-direction:column; align-items:center; width:100%; border-radius:45%; color:inherit; text-decoration:none; }
+.secondaryDestinations { position:absolute; top:calc(100% - .6rem); width:max-content; max-width:290px; display:flex; justify-content:center; flex-wrap:wrap; gap:.3rem; opacity:0; visibility:hidden; pointer-events:none; transition:opacity 180ms ease; }
+.galaxyNodeActive .secondaryDestinations { opacity:1; visibility:visible; pointer-events:auto; }
+.secondaryDestinations a { display:flex; flex-direction:column; gap:.15rem; justify-content:center; min-height:40px; padding:.3rem .5rem; font-size:.63rem; color:#d7c8ad; border-bottom:1px solid #c3b18d35; background:#050a1260; }
+.secondaryDestinations a span { color:#9da6b3; font-size:.48rem; letter-spacing:.04em; }
+@media (max-width:767px) {
+  .utilityBrand span { font-size:.5rem; letter-spacing:.1em; }
+  .utilityDesktop { display:none; }
+  .utilityMobile { display:block; }
+  .secondaryDestinations { max-width:min(290px,82vw); top:calc(100% - 2.4rem); }
+  .secondaryDestinations a { min-height:44px; }
+  .galaxyNodeActive .galaxyReveal { visibility:hidden; }
+}
 .atmosphere,.atmosphere span { position:absolute; inset:0; pointer-events:none; }
 .atmosphere { z-index:-1; background:radial-gradient(ellipse at 53% 44%,#09101b,#020408 64%); }
 .atmosphereNebulaOne { background:radial-gradient(ellipse at 70% 22%,#26364926,transparent 33%); }

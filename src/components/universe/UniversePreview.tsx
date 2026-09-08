@@ -45,6 +45,7 @@ export function UniversePreview() {
   const enterGalaxy = (event: MouseEvent<HTMLAnchorElement>, galaxy: UniverseGalaxy) => {
     if (galaxy.status !== "available" || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
     event.preventDefault();
+    if (galaxy.href.startsWith("#")) { focusGalaxy(galaxy.id); return; }
     const touch = touchSelection.current;
     touchSelection.current = null;
     // First tap awakens the world; the next tap follows its real semantic link.
@@ -72,7 +73,13 @@ export function UniversePreview() {
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>WORLDS WITHIN REACH</p>
           <h1 id="universe-title"><span>E.X</span> CREATOR UNIVERSE</h1>
-          <p>在深處，發現下一個世界。</p>
+          <p className={styles.valueProposition}>創作、學習、語言與洞察，<br />匯聚成你的 AI 工作宇宙。</p>
+          <p className={styles.valueEnglish}>Create · Learn · Connect · Discover</p>
+          <button type="button" className={styles.exploreButton} data-primary-cta="true" onClick={() => {
+            focusGalaxy("knowledge");
+            sceneRef.current?.querySelector<HTMLAnchorElement>('[data-galaxy-main="knowledge"]')?.focus({ preventScroll: true });
+            if (window.matchMedia("(max-width: 767px)").matches) sceneRef.current?.querySelector('[data-galaxy="knowledge"]')?.scrollIntoView({ block: "center", behavior: motionMode === "reduced" ? "instant" : "smooth" });
+          }}>開始探索 <small>Start Exploring</small></button>
           {sensorPrompt ? <button type="button" className={styles.spatialEnable} onClick={enableGyro}>啟用 3D 空間感 <small>3D Spatial</small></button> : null}
         </div>
 

@@ -22,20 +22,26 @@ export function GalaxyNode({ galaxy, active, dimmed, onFocusGalaxy, onEnterGalax
   ].join(" ");
 
   return (
-    <Link
-      href={galaxy.status === "available" ? galaxy.href : "#"}
+    <div
       className={nodeClass}
       style={{ "--galaxy-x": galaxy.position.x, "--galaxy-y": galaxy.position.y, "--galaxy-z": `${galaxy.position.z}px` } as CSSProperties}
+      role="group"
       aria-label={`${galaxy.title} — ${galaxy.subtitle}`}
       data-focused={active}
       data-galaxy={galaxy.id}
       data-status={galaxy.status}
       onFocus={() => onFocusGalaxy(galaxy.id)}
       onPointerEnter={(event) => { if (event.pointerType !== "touch") onFocusGalaxy(galaxy.id); }}
-      onPointerDown={(event) => onPointerDown(event, galaxy.id)}
-      onClick={(event) => onEnterGalaxy(event, galaxy)}
-      onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}
     >
+      <Link href={galaxy.status === "available" ? galaxy.href : "#"}
+        className={styles.galaxyMainAction}
+        data-galaxy-main={galaxy.id}
+        aria-label={`${galaxy.title} — ${galaxy.subtitle}${galaxy.id === "language" ? "，選擇語言" : "，進入主入口"}`}
+        aria-controls={`${galaxy.id}-destinations`}
+        aria-expanded={active}
+        onPointerDown={(event) => onPointerDown(event, galaxy.id)}
+        onClick={(event) => onEnterGalaxy(event, galaxy)}
+        onKeyDown={(event) => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
       <span className={styles.galaxyVisual} aria-hidden="true">
         <span className={styles.focusFilament} />
         <Image src={`/images/universe/${galaxy.id}-v2.png`} alt="" width={1254} height={1254} sizes="(max-width: 767px) 220px, 260px" unoptimized />
@@ -43,9 +49,17 @@ export function GalaxyNode({ galaxy, active, dimmed, onFocusGalaxy, onEnterGalax
       <span className={styles.galaxyCopy}>
         <strong>{galaxy.title}</strong>
         <span>{galaxy.subtitle}</span>
-        <small className={styles.galaxyReveal} aria-hidden={!active}>{galaxy.description}</small>
+        <small className={styles.galaxyReveal} aria-hidden={!active}>{galaxy.id === "language" ? "選擇下方語言" : "進入主入口 ↗"}</small>
       </span>
       {galaxy.status === "coming-soon" ? <span className={styles.galaxyStatus}>COMING SOON</span> : null}
-    </Link>
+      </Link>
+      <nav id={`${galaxy.id}-destinations`} className={styles.secondaryDestinations}
+        aria-label={`${galaxy.title}目的地`} aria-hidden={!active} inert={!active}>
+        {galaxy.destinations.map(destination => <Link key={destination.href} href={destination.href}
+          tabIndex={active ? 0 : -1} onKeyDown={event => { if (event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }}>
+          {destination.label}<span>{destination.english}</span>
+        </Link>)}
+      </nav>
+    </div>
   );
 }
