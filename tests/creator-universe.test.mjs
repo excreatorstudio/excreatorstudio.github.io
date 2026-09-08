@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
+import ts from "typescript";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFile(new URL(path, root), "utf8");
@@ -19,6 +21,100 @@ const navigation = await read("src/data/universe-navigation.ts");
 const styles = await read("src/app/universe-preview/universe-preview.module.css");
 const homepage = await read("src/app/page.tsx");
 const packageJson = JSON.parse(await read("package.json"));
+
+// Execute the real hook against controlled platform events, without a browser or sensors.
+function sensorHarness({ enabled = true, reduced = false, low = false, requestPermission } = {}) {
+  const listeners = new Map();
+  const rootEvents = new Map();
+  const frames = new Map();
+  const values = new Map();
+  const storage = new Map();
+  let cleanup;
+  let time = 0;
+  let sequence = 0;
+  const node = { style: { setProperty() {} } };
+  const element = {
+    style: { setProperty: (key, value) => values.set(key, Number(value)) },
+    querySelector: () => node, getBoundingClientRect: () => ({ left:0, top:0, width:390, height:1600 }),
+    addEventListener: (name, handler) => rootEvents.set(name, handler), removeEventListener() {},
+  };
+  let refIndex = 0;
+  const context = {
+    exports: {}, require: name => name === "react" ? {
+      useRef: value => ({ current: refIndex++ === 0 ? element : value }),
+      useState: value => [value, () => {}], useEffect: effect => { cleanup = effect(); },
+    } : { universeGalaxies: [{ id:"knowledge", position:{ x:"50%", y:"50%", z:0 } }] },
+    navigator: { deviceMemory:low ? 2 : 8, hardwareConcurrency:low ? 2 : 8 },
+    window: { DeviceOrientationEvent:{ requestPermission }, addEventListener:(name, handler) => listeners.set(name, handler), removeEventListener:name => listeners.delete(name) },
+    document:{ hidden:false, addEventListener(){}, removeEventListener(){} },
+    sessionStorage:{ getItem:key => storage.get(key), setItem:(key,value) => storage.set(key,value) },
+    matchMedia: query => ({ matches:query.includes("reduced") ? reduced : true, addEventListener(){}, removeEventListener(){} }),
+    ResizeObserver:class { observe(){} disconnect(){} }, performance:{ now:() => time },
+    requestAnimationFrame: handler => { frames.set(++sequence,handler); return sequence; },
+    cancelAnimationFrame: id => frames.delete(id),
+  };
+  vm.runInNewContext(ts.transpileModule(motion, { compilerOptions:{ module:ts.ModuleKind.CommonJS } }).outputText, context);
+  const hook = context.exports.useUniverseMotion(enabled);
+  return { hook, listeners, rootEvents, values, storage, cleanup:() => cleanup(),
+    sensor:(beta,gamma) => { time += 40; listeners.get("deviceorientation")?.({ beta,gamma }); },
+    settle:() => { for(let i=0;i<200 && frames.size;i++){ time += 16; const callbacks=[...frames.values()]; frames.clear(); callbacks.forEach(callback=>callback(time)); } return frames.size; },
+  };
+}
+
+test("gyro waits for intro and excludes reduced motion and low GPU", () => {
+  for (const options of [{ enabled:false },{ reduced:true },{ low:true }]) {
+    const harness = sensorHarness(options);
+    assert.equal(harness.listeners.has("deviceorientation"),false);
+    harness.cleanup();
+  }
+  assert.match(scene,/useUniverseMotion\(!introActive\)/);
+});
+
+test("iOS asks once and denied or rejected permission preserves touch fallback", async () => {
+  for(const rejects of [false,true]) {
+    let calls=0;
+    const harness=sensorHarness({requestPermission:()=>{calls++; return rejects ? Promise.reject(new Error("blocked")) : Promise.resolve("denied");}});
+    harness.hook.enableGyro(); harness.hook.enableGyro();
+    await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(calls,1);
+    assert.equal(harness.listeners.has("deviceorientation"),false);
+    harness.rootEvents.get("pointerdown")({pointerType:"touch",clientX:10,clientY:10});
+    harness.rootEvents.get("pointermove")({pointerType:"touch",clientX:80,clientY:30});
+    harness.settle();
+    assert.ok(harness.values.get("--pointer-x")>0);
+    harness.cleanup();
+  }
+});
+
+test("granted gyro clamps and damps real targets while preserving focus and settling", async () => {
+  const harness=sensorHarness({requestPermission:()=>Promise.resolve("granted")});
+  harness.hook.enableGyro();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(harness.listeners.has("deviceorientation"),true);
+  harness.sensor(70,0); harness.sensor(80,12);
+  harness.hook.focusGalaxy("knowledge");
+  assert.equal(harness.settle(),0);
+  assert.ok(harness.values.get("--pointer-x")>0);
+  assert.equal(harness.values.get("--engaged"),1);
+  harness.sensor(180,90); harness.settle();
+  assert.ok(Math.abs(harness.values.get("--pointer-x"))<=2.1);
+  const previous=harness.values.get("--pointer-x");
+  harness.sensor(null,null); harness.settle();
+  assert.equal(harness.values.get("--pointer-x"),previous);
+  harness.cleanup();
+  assert.equal(harness.listeners.has("deviceorientation"),false);
+});
+
+test("mobile round stars and one streak instance keep bounded asynchronous activity", () => {
+  assert.equal((scene.match(/<i \/>/g)??[]).length,8);
+  assert.match(styles,/border-radius:50%/);
+  assert.match(styles,/@keyframes round-twinkle/);
+  assert.match(styles,/animation-duration:4.8s; animation-delay:-1.7s/);
+  assert.match(styles,/mobile-streak 27s/);
+  assert.match(styles,/\.streakSecond,.*\.streakThird \{ display:none/);
+  assert.match(styles,/data-motion-mode="low-gpu".*twinkles i:nth-child\(n\+4\).*display:none/);
+  assert.match(styles,/animation:none !important/);
+});
 
 test("sparse star refinement and occasional streak preserve safe modes", () => {
   assert.match(styles, /background-size:235px 242px,328px 280px/);
@@ -70,14 +166,14 @@ test("production UX keeps mobile standard alive while deferring ambient activati
   assert.match(styles, /brightness\(1.15\)/);
   assert.match(styles, /galaxyNodeActive.*brightness\(1.34\)/);
   assert.match(node, /styles.focusFilament/);
-  assert.match(scene, /MOBILE_STANDARD/);
+  assert.match(scene, /MOBILE_GYRO.*MOBILE_TOUCH/);
   assert.match(scene, /setAmbientReady\(true\), 450/);
   assert.match(styles, /data-ambient-ready="false"/);
-  assert.match(styles, /mobile-streak 12s/);
+  assert.match(styles, /mobile-streak 27s/);
   assert.match(styles, /mobile-breathe var\(--breath-duration\)/);
   assert.match(styles, /54.6px/);
   assert.match(motion, /deviceMemory \?\? 8\) <= 2 &&/);
-  assert.doesNotMatch(motion, /userAgent|deviceorientation/);
+  assert.doesNotMatch(motion, /userAgent/);
   assert.equal((motion.match(/function tick\(/g) ?? []).length, 1);
 });
 
@@ -186,7 +282,7 @@ test("far galaxies use an original noninteractive subdued layer with low GPU fal
 });
 
 test("fine tuning adds bounded gain and asynchronous CSS pulses without another frame engine", () => {
-  assert.match(motion, /mode === "full" \? 1.4 : mode === "mobile-safe" \? 1.8 : 1/);
+  assert.match(motion, /mode === "full" \? 1.4 : mode === "mobile-safe" \? \(listening \? 2.1 : 1.8\) : 1/);
   assert.match(styles, /@keyframes world-halo/);
   assert.match(styles, /0%,55%,100% \{ opacity:0/);
   assert.match(styles, /world-halo var\(--breath-duration\).*var\(--breath-phase\)/);
@@ -205,7 +301,7 @@ test("touch focus is separate from navigation and passive drift shares the exist
     assert.match(motion, new RegExp(`addEventListener\\("${event}"`));
     assert.match(motion, new RegExp(`removeEventListener\\("${event}"`));
   }
-  assert.doesNotMatch(motion, /preventDefault|DeviceOrientationEvent|deviceorientation/);
+  assert.doesNotMatch(motion, /preventDefault/);
   assert.equal((motion.match(/function tick\(/g) ?? []).length, 1);
 });
 

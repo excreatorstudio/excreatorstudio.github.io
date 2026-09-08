@@ -8,11 +8,14 @@ type GalaxyId = UniverseGalaxy["id"];
 export type MotionMode = "full" | "low-gpu" | "mobile-safe" | "reduced";
 
 /** One demand-driven frame loop owns all spatial transforms. No React updates per frame. */
-export function useUniverseMotion() {
+export function useUniverseMotion(enabled = true) {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const controller = useRef<{ focus: (id: GalaxyId | null) => void }>({ focus: () => {} });
   const [activeGalaxy, setActiveGalaxy] = useState<GalaxyId | null>(null);
   const [motionMode, setMotionMode] = useState<MotionMode>("reduced");
+  const [gyroActive, setGyroActive] = useState(false);
+  const [sensorPrompt, setSensorPrompt] = useState(false);
+  const sensorRequest = useRef<() => void>(() => {});
 
   useEffect(() => {
     const element = sceneRef.current;
@@ -37,9 +40,61 @@ export function useUniverseMotion() {
     let inside = false;
     let lastPointer: { x: number; y: number; time: number } | null = null;
     let touchOrigin: { x: number; y: number } | null = null;
+    const sensor = (window as unknown as { DeviceOrientationEvent?: { requestPermission?: () => Promise<string> } }).DeviceOrientationEvent;
+    const permissionKey = "ex-universe-gyro-permission";
+    let permission = "";
+    try { permission = sessionStorage.getItem(permissionKey) ?? ""; } catch { /* Storage is optional. */ }
+    let disposed = false;
+    let listening = false;
+    let baseline: { beta: number; gamma: number } | null = null;
+    let lastSensorTime = 0;
+    let lastSensorTarget = { x: 0, y: 0 };
+    function orientation(event: DeviceOrientationEvent) {
+      if (!enabled || document.hidden || mode !== "mobile-safe" || event.beta === null || event.gamma === null || !Number.isFinite(event.beta) || !Number.isFinite(event.gamma)) return;
+      const now = performance.now();
+      if (now - lastSensorTime < 32) return;
+      lastSensorTime = now;
+      baseline ??= { beta: event.beta, gamma: event.gamma };
+      const clamp = (value: number) => Math.max(-1, Math.min(1, value));
+      const wrap = (value: number) => ((value + 540) % 360) - 180;
+      const x = clamp(wrap(event.gamma - baseline.gamma) / 24);
+      const y = clamp(wrap(event.beta - baseline.beta) / 28);
+      // Deadband prevents sensor noise from keeping the settled loop awake.
+      if (Math.abs(x - lastSensorTarget.x) < .015 && Math.abs(y - lastSensorTarget.y) < .015) return;
+      lastSensorTarget = { x, y };
+      if (!touchOrigin) { target.x = x; target.y = y; wake(); }
+    }
+    function syncSensor() {
+      const allowed = enabled && mode === "mobile-safe" && !document.hidden && !!sensor;
+      const permitted = !sensor?.requestPermission || permission === "granted";
+      if (allowed && permitted && !listening) {
+        window.addEventListener("deviceorientation", orientation, { passive: true });
+        listening = true;
+        baseline = null;
+      } else if ((!allowed || !permitted) && listening) {
+        window.removeEventListener("deviceorientation", orientation);
+        listening = false;
+      }
+      setGyroActive(listening);
+      setSensorPrompt(allowed && !!sensor?.requestPermission && !permission);
+    }
+    sensorRequest.current = () => {
+      if (!enabled || mode !== "mobile-safe" || permission || !sensor?.requestPermission) return;
+      permission = "requested";
+      try { sessionStorage.setItem(permissionKey, permission); } catch { /* Optional. */ }
+      setSensorPrompt(false);
+      // Called directly from the button gesture, never retried on denial.
+      try {
+        void sensor.requestPermission().then(result => {
+          permission = result === "granted" ? "granted" : "denied";
+          try { sessionStorage.setItem(permissionKey, permission); } catch { /* Optional. */ }
+          if (!disposed) syncSensor();
+        }).catch(() => { permission = "denied"; try { sessionStorage.setItem(permissionKey, permission); } catch { /* Optional. */ } });
+      } catch { permission = "denied"; }
+    };
 
     function wake() {
-      if (!frame && !document.hidden) { previousTime = performance.now(); frame = requestAnimationFrame(tick); }
+      if (enabled && !frame && !document.hidden) { previousTime = performance.now(); frame = requestAnimationFrame(tick); }
     }
     function focus(id: GalaxyId | null) {
       if (id === active) return;
@@ -75,7 +130,7 @@ export function useUniverseMotion() {
         else unsettled = true;
       }
       // Full spatial tension +40%; phone and low GPU keep a smaller envelope.
-      const driftGain = mode === "full" ? 1.4 : mode === "mobile-safe" ? 1.8 : 1;
+      const driftGain = mode === "full" ? 1.4 : mode === "mobile-safe" ? (listening ? 2.1 : 1.8) : 1;
       root.style.setProperty("--pointer-x", (current.x * driftGain).toFixed(4));
       root.style.setProperty("--pointer-y", (current.y * driftGain).toFixed(4));
       root.style.setProperty("--focus-x", current.focusX.toFixed(4));
@@ -105,6 +160,7 @@ export function useUniverseMotion() {
       target.velocityX = target.velocityY = current.velocityX = current.velocityY = 0;
       lastPointer = null;
       touchOrigin = null;
+      syncSensor();
       wake();
     }
     function measure() {
@@ -133,6 +189,7 @@ export function useUniverseMotion() {
       }
     }
     function move(event: PointerEvent) {
+      if (!enabled) return;
       if (event.pointerType === "touch") {
         if (!touchOrigin || mode === "reduced" || lowGpu) return;
         target.x = Math.max(-1, Math.min(1, (event.clientX - touchOrigin.x) / 120));
@@ -141,6 +198,7 @@ export function useUniverseMotion() {
         return; // Passive: scrolling remains owned by the browser, no proximity selection.
       }
       if (mode === "mobile-safe") {
+        if (listening) return;
         target.x = Math.max(-1, Math.min(1, event.clientX / window.innerWidth * 2 - 1));
         target.y = Math.max(-1, Math.min(1, event.clientY / window.innerHeight * 2 - 1));
         wake();
@@ -179,14 +237,16 @@ export function useUniverseMotion() {
     function touchEnd() {
       if (!touchOrigin) return;
       touchOrigin = null;
-      target.x = target.y = 0;
+      target.x = listening ? lastSensorTarget.x : 0;
+      target.y = listening ? lastSensorTarget.y : 0;
       wake();
     }
     function leave() {
       inside = false;
       lastPointer = null;
       target.velocityX = target.velocityY = 0;
-      target.x = target.y = 0;
+      target.x = listening ? lastSensorTarget.x : 0;
+      target.y = listening ? lastSensorTarget.y : 0;
       const focused = root.querySelector<HTMLElement>("[data-galaxy]:focus");
       focus((focused?.dataset.galaxy as GalaxyId) ?? null);
       wake();
@@ -202,6 +262,7 @@ export function useUniverseMotion() {
     }
     function visibility() {
       cancelAnimationFrame(frame); frame = 0;
+      syncSensor();
       if (!document.hidden) { measure(); wake(); }
     }
     controller.current = { focus };
@@ -221,6 +282,9 @@ export function useUniverseMotion() {
     document.addEventListener("visibilitychange", visibility);
     updateMode();
     return () => {
+      disposed = true;
+      window.removeEventListener("deviceorientation", orientation);
+      sensorRequest.current = () => {};
       cancelAnimationFrame(frame);
       observer.disconnect();
       controller.current = { focus: () => {} };
@@ -237,7 +301,7 @@ export function useUniverseMotion() {
       mobile.removeEventListener("change", updateMode);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, []);
+  }, [enabled]);
 
-  return { sceneRef, activeGalaxy, motionMode, focusGalaxy: (id: GalaxyId) => controller.current.focus(id) };
+  return { sceneRef, activeGalaxy, motionMode, gyroActive, sensorPrompt, enableGyro: () => sensorRequest.current(), focusGalaxy: (id: GalaxyId) => controller.current.focus(id) };
 }

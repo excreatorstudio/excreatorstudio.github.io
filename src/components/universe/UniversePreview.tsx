@@ -15,11 +15,11 @@ import { useUniverseMotion } from "./useUniverseMotion";
 
 export function UniversePreview() {
   const router = useRouter();
-  const { sceneRef, activeGalaxy, motionMode, focusGalaxy } = useUniverseMotion();
+  const [introActive, setIntroActive] = useState(true);
+  const { sceneRef, activeGalaxy, motionMode, focusGalaxy, gyroActive, sensorPrompt, enableGyro } = useUniverseMotion(!introActive);
   const navigationTimer = useRef<number | null>(null);
   const touchSelection = useRef<{ id: UniverseGalaxy["id"]; alreadyFocused: boolean } | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [introActive, setIntroActive] = useState(true);
   const [ambientReady, setAmbientReady] = useState(false);
   const [bridging, setBridging] = useState(false);
   const beginBridge = useCallback(() => setBridging(true), []);
@@ -60,7 +60,7 @@ export function UniversePreview() {
   };
 
   return (
-    <div className={`${styles.page} ${isTransitioning ? styles.pageTransitioning : ""}`} data-motion-mode={motionMode} data-runtime-tier={motionMode === "full" ? "DESKTOP_FULL" : motionMode === "mobile-safe" ? "MOBILE_STANDARD" : motionMode === "low-gpu" ? "LOW_GPU" : "REDUCED_MOTION"} data-ambient-ready={ambientReady} data-intro-active={introActive} data-bridging={bridging && introActive}>
+    <div className={`${styles.page} ${isTransitioning ? styles.pageTransitioning : ""}`} data-motion-mode={motionMode} data-runtime-tier={motionMode === "full" ? "DESKTOP_FULL" : motionMode === "mobile-safe" ? (gyroActive ? "MOBILE_GYRO" : "MOBILE_TOUCH") : motionMode === "low-gpu" ? "LOW_GPU" : "REDUCED_MOTION"} data-ambient-ready={ambientReady} data-intro-active={introActive} data-bridging={bridging && introActive}>
       {introActive ? <UniverseIntro onComplete={completeIntro} onBridge={beginBridge} /> : null}
       <div className={styles.atmosphere} aria-hidden="true">
         <span className={styles.atmosphereNebulaOne} />
@@ -73,6 +73,7 @@ export function UniversePreview() {
           <p className={styles.eyebrow}>WORLDS WITHIN REACH</p>
           <h1 id="universe-title"><span>E.X</span> CREATOR UNIVERSE</h1>
           <p>在深處，發現下一個世界。</p>
+          {sensorPrompt ? <button type="button" className={styles.spatialEnable} onClick={enableGyro}>啟用 3D 空間感 <small>3D Spatial</small></button> : null}
         </div>
 
         <UniversePointerField sceneRef={sceneRef}>
@@ -84,7 +85,7 @@ export function UniversePreview() {
             <div className={styles.distantStreak} aria-hidden="true" />
             <div className={`${styles.distantStreak} ${styles.streakSecond}`} aria-hidden="true" />
             <div className={`${styles.distantStreak} ${styles.streakThird}`} aria-hidden="true" />
-            <div className={styles.twinkles} aria-hidden="true"><i /><i /><i /><i /><i /><i /></div>
+            <div className={styles.twinkles} aria-hidden="true"><i /><i /><i /><i /><i /><i /><i /><i /></div>
             <div className={styles.focusField} data-depth-layer="light" aria-hidden="true" />
             <div className={styles.localOrbit} data-depth-layer="local-orbit" aria-hidden="true" />
             <div className={styles.depthFront} data-depth-layer="front" aria-hidden="true" />
