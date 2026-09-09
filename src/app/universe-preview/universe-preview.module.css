@@ -125,8 +125,8 @@
 .coreLink { display:block; position:relative; height:100%; text-align:center; border-radius:50%; }
 .coreImage { width:100%; height:auto; mask-image:radial-gradient(circle,black 40%,transparent 71%); animation:core-breathe 10s ease-in-out infinite; }
 .coreMark,.coreSubtitle { position:absolute; left:0; right:0; pointer-events:none; }
-.coreMark { top:74%; font-family:Georgia,serif; color:#d8c198; font-size:1.6rem; letter-spacing:.12em; }
-.coreSubtitle { top:84%; font-size:.52rem; letter-spacing:.25em; color:#c0b69f; }
+.coreMark { top:74%; font-family:Georgia,serif; color:#d8c198; font-size:clamp(1.45rem,2.2vw,1.6rem); letter-spacing:.14em; }
+.coreSubtitle { top:84%; font-size:clamp(.5rem,.75vw,.6rem); letter-spacing:.16em; color:#c0b69f; white-space:nowrap; }
 .galaxyLayer { position:absolute; inset:0; transform-style:preserve-3d; pointer-events:none; }
 .galaxyNode {
   --focus-weight:0; --center-shift-x:0px; --center-shift-y:0px; --depth-compensation-x:0px; --depth-compensation-y:0px; --world-size:230px; --breath-duration:17s; --breath-phase:-5s;
@@ -154,6 +154,7 @@
 .galaxyNodeActive .galaxyCopy strong { color:#f0dec0; }
 .touchHint { display:none; }
 .lowerBand { position:relative; display:flex; justify-content:space-between; gap:2rem; padding:1rem 3% 2rem; color:#a9a89e; font-size:.65rem; letter-spacing:.08em; }
+.productionSecondaryEntry { width:min(100% - 2.5rem, 82rem); margin:0 auto; }
 .destinationDirectory summary { cursor:pointer; min-height:30px; }
 .textNav { display:flex; flex-wrap:wrap; gap:1rem; padding:1rem 0; }
 .textNav a,.homeLink { color:#b6ad9d; }
@@ -192,12 +193,17 @@
   .galaxyReveal { min-height:2rem; }
   .galaxyCopy strong { font-size:.94rem; }
   .galaxyCopy > span { font-size:.62rem; }
+  .coreMark { top:73%; font-size:1.45rem; }
+  .coreSubtitle { top:82%; font-size:.5rem; letter-spacing:.1em; }
   .depthFront,.localOrbit,.focusField,.orbitSystem { display:none; }
   .depthFar,.depthBack { transform:none; }
   .farGalaxies { inset:0 -20%; background-size:auto 100%; opacity:.52; transform:translate3d(calc(var(--pointer-x) * -2px * var(--motion-strength)),calc(var(--pointer-y) * -1px * var(--motion-strength)),0); }
   .touchHint { display:block; flex-basis:100%; color:#a6abb4; font-size:.65rem; }
   .lowerBand { flex-wrap:wrap; }
   .lowerBand { padding-top:2rem; }
+}
+@media (max-width:380px) {
+  .coreSubtitle { font-size:.46rem; letter-spacing:.07em; }
 }
 .page[data-motion-mode="mobile-safe"] .sceneWorld { transform:none; }
 .page[data-motion-mode="low-gpu"] .galacticMist::after,.page[data-motion-mode="reduced"] .galacticMist::after { animation:none; }

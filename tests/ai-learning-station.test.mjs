@@ -9,6 +9,7 @@ const exists = async (path) => { await access(new URL(path, root)); return true;
 
 const content = await read("src/lib/ai-learning/content.ts");
 const home = await read("src/app/page.tsx");
+const universeNavigation = await read("src/data/universe-navigation.ts");
 const landing = await read("src/app/ai-learning/page.tsx");
 const hero = await read("src/components/ai-learning/AiLearningHero.tsx");
 const homeEntry = await read("src/components/AiLearningStationEntry.tsx");
@@ -26,8 +27,9 @@ const packageJson = JSON.parse(await read("package.json"));
 test("AI Learning Station landing and homepage entry routes exist", async () => {
   assert.equal(await exists("src/app/ai-learning/page.tsx"), true);
   assert.equal(await exists("src/components/AiLearningStationEntry.tsx"), true);
-  assert.match(home, /AiLearningStationEntry/);
-  assert.match(home, /CreatorAcademyPromo/);
+  assert.match(home, /UniversePreview/);
+  assert.match(universeNavigation, /href: "\/ai-learning\//);
+  assert.match(universeNavigation, /href: "\/creator-academy\//);
   assert.match(landing, /AI 學習站/);
   assert.match(hero, /理解邏輯，<span>把執行交給 AI。<\/span>/);
   assert.match(homeEntry, /hover|tap/i);

@@ -8,7 +8,9 @@ const EX_CREATOR_STUDIO_URL = "https://excreatorstudio.com/";
 
 export function Header() {
   const pathname = usePathname();
-  if (pathname === "/universe-preview" || pathname === "/universe-preview/") return <UniverseHeader />;
+  if (pathname === "/" || pathname === "/universe-preview" || pathname === "/universe-preview/") {
+    return <UniverseHeader isRoot={pathname === "/"} />;
+  }
   return (
     <header className="creator-header">
       <div className="creator-header__inner">

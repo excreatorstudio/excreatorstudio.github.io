@@ -11,6 +11,7 @@ test("Property Media route, entry and reusable media data are wired", () => {
   const experience = read("src/components/property-media/PropertyMediaExperience.tsx");
   const data = read("src/data/property-media.ts");
   const home = read("src/app/page.tsx");
+  const universe = read("src/components/universe/UniversePreview.tsx");
 
   assert.match(page, /PropertyMediaExperience/);
   assert.match(page, /property-media\//);
@@ -22,7 +23,7 @@ test("Property Media route, entry and reusable media data are wired", () => {
   assert.match(experience, /prefers-reduced-motion/);
   assert.match(data, /propertyMediaCategories/);
   for (const category of ["immersive", "presenter", "ai-staging", "land-ai", "other-ai"]) assert.match(data, new RegExp(`id: "${category}"`));
-  assert.match(home, /PropertyMediaEntry/);
+  assert.match(`${home}\n${universe}`, /PropertyMediaEntry/);
 });
 
 test("Property Media Stage 2 portfolio is data-driven and uses verified media paths", () => {
