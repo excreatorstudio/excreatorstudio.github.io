@@ -21,6 +21,8 @@ const pointerField = await read("src/components/universe/UniversePointerField.ts
 const navigation = await read("src/data/universe-navigation.ts");
 const styles = await read("src/app/universe-preview/universe-preview.module.css");
 const homepage = await read("src/app/page.tsx");
+const header = await read("src/components/Header.tsx");
+const utilityHeader = await read("src/components/universe/UniverseHeader.tsx");
 const packageJson = JSON.parse(await read("package.json"));
 
 // Execute the real hook against controlled platform events, without a browser or sensors.
@@ -144,6 +146,8 @@ test("intro uses exact public media, session skip, guarded playback and mounted 
   assert.match(styles, /@keyframes star-twinkle/);
   assert.match(scene, /styles.streakSecond/);
   assert.match(scene, /styles.streakThird/);
+  assert.match(intro, /setTimeout\(\(\) => setSkipReady\(true\), 500\)/);
+  assert.ok(intro.includes('aria-label="略過 E.X Creator Universe 開場動畫"'));
   // Three 0.9s windows spaced 9 / 11 / 10 seconds apart: never simultaneous.
   assert.ok([9,11,10].every(gap => gap > .9));
 });
@@ -189,6 +193,18 @@ test("Universe preview route is static and noindex", async () => {
   assert.doesNotMatch(route, /cookies\(|headers\(|force-dynamic|server action/i);
 });
 
+test("production root cuts over to the shared Universe and stays indexable", () => {
+  assert.match(homepage, /<UniversePreview showPropertyMediaEntry \/>/);
+  assert.ok(homepage.includes('alternates: { canonical: "/" }'));
+  assert.match(homepage, /robots: \{ index: true, follow: true \}/);
+  assert.match(homepage, /openGraph:/);
+  assert.match(scene, /showPropertyMediaEntry/);
+  assert.match(scene, /PropertyMediaEntry/);
+  assert.ok(header.includes('pathname === "/" || pathname === "/universe-preview"'));
+  assert.match(utilityHeader, /isRoot/);
+  assert.match(utilityHeader, /universeHref/);
+});
+
 test("the first composition renders the four primary galaxies and safe destinations", () => {
   for (const id of ["create", "knowledge", "language", "insight"]) assert.match(navigation, new RegExp(`id: "${id}"`));
   for (const [title, subtitle] of [["創作", "Create"], ["知識", "Knowledge"], ["語言", "Language"], ["洞察", "Insight"]]) {
@@ -197,6 +213,7 @@ test("the first composition renders the four primary galaxies and safe destinati
   }
   assert.match(navigation, /href: "\/ai-learning\//);
   assert.match(navigation, /href: "\/market-radar\//);
+  assert.match(navigation, /subtitle: "創作中心 × 創作者學院"/);
   assert.match(scene, /universeGalaxies\.map/);
   assert.match(scene, /UniverseCore/);
   assert.match(core, /universeCore\.subtitle/);
@@ -225,10 +242,11 @@ test("motion safety and mobile safe mode remain explicit", () => {
   assert.match(styles, /grid-template-columns: 1fr/);
 });
 
-test("reference assets are not runtime dependencies and homepage stays untouched", () => {
+test("reference assets are not runtime dependencies and production root keeps the safe entry", () => {
   assert.doesNotMatch(`${route}\n${scene}\n${core}\n${node}`, /assets\/references\/ex-creator-universe/);
   assert.doesNotMatch(JSON.stringify(packageJson.dependencies), /three|react-three-fiber|gsap/i);
-  assert.doesNotMatch(homepage, /universe-preview|UniversePreview/);
+  assert.match(homepage, /UniversePreview/);
+  assert.match(scene, /PropertyMediaEntry/);
 });
 
 test("recalibration uses independent original worlds and focus-only secondary copy", async () => {
@@ -348,13 +366,11 @@ test("Phase 2D destination ownership is unique and local routes exist", async ()
   }
 });
 
-test("Phase 2D header is preview-only utility navigation with no fake accounts", async () => {
-  const header = await read("src/components/Header.tsx");
-  const utility = await read("src/components/universe/UniverseHeader.tsx");
-  assert.match(header, /pathname === "\/universe-preview" \|\| pathname === "\/universe-preview\/"/);
-  for (const label of ["宇宙入口", "關於 E.X", "手機全域導覽"]) assert.ok(utility.includes(label));
-  assert.doesNotMatch(utility, /#membership|登入|點數|訂閱|創作|知識|語言|洞察/);
-  assert.match(utility, /href="\/"/);
+test("Phase 2D header is shared utility navigation with no fake accounts", async () => {
+  assert.ok(header.includes('pathname === "/" || pathname === "/universe-preview"'));
+  for (const label of ["宇宙入口", "關於 E.X", "手機全域導覽"]) assert.ok(utilityHeader.includes(label));
+  assert.doesNotMatch(utilityHeader, /#membership|登入|點數|訂閱|創作|知識|語言|洞察/);
+  assert.match(utilityHeader, /href="\/"/);
   assert.equal(await exists("docs/ex-creator-universe/phase-2d-navigation-map.md"), true);
 });
 

@@ -53,7 +53,7 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
     // A single autoplay attempt. Never retry on unrelated clicks or bypass policy.
     void audio.play().then(() => { if (!finished) setAudioStatus("played"); })
       .catch(() => { if (!finished) setAudioStatus("blocked-safely"); });
-    const skip = setTimeout(() => setSkipReady(true), 850);
+    const skip = setTimeout(() => setSkipReady(true), 500);
     watchdog = setTimeout(finish, 8000);
     const progress = () => { clearTimeout(watchdog); watchdog = setTimeout(finish, 8000); };
     progressRef.current = progress;
@@ -77,6 +77,6 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
   return createPortal(<div className={styles.introOverlay} data-leaving={leaving} data-simple={simple} data-audio-status={audioStatus} role="dialog" aria-label="E.X Creator Universe 開場動畫" aria-modal="true">
     <video ref={video} src={source} autoPlay muted playsInline preload="auto" onTimeUpdate={() => progressRef.current()} onEnded={() => finishRef.current()} onError={() => finishRef.current()} />
     <div className={styles.opticalBloom} aria-hidden="true" />
-    <button autoFocus className={styles.introSkip} data-ready={skipReady} onClick={() => finishRef.current()}>略過動畫 <small>Skip intro</small></button>
+    <button autoFocus className={styles.introSkip} data-ready={skipReady} aria-label="略過 E.X Creator Universe 開場動畫" onClick={() => finishRef.current()}>略過動畫 <small>Skip intro</small></button>
   </div>, document.body);
 }

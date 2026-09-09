@@ -90,6 +90,6 @@ export const universeGalaxies: readonly UniverseGalaxy[] = [
 
 export const universeCore = {
   title: "E.X",
-  subtitle: "CREATOR UNIVERSE",
+  subtitle: "創作中心 × 創作者學院",
   href: "/",
 } as const;

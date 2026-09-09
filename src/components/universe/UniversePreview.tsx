@@ -10,10 +10,11 @@ import { GalaxyNode } from "@/components/universe/GalaxyNode";
 import { UniverseCore } from "@/components/universe/UniverseCore";
 import { UniverseOrbit } from "@/components/universe/UniverseOrbit";
 import { UniversePointerField } from "@/components/universe/UniversePointerField";
+import { PropertyMediaEntry } from "@/components/PropertyMediaEntry";
 import styles from "@/app/universe-preview/universe-preview.module.css";
 import { useUniverseMotion } from "./useUniverseMotion";
 
-export function UniversePreview() {
+export function UniversePreview({ showPropertyMediaEntry = false }: { showPropertyMediaEntry?: boolean }) {
   const router = useRouter();
   const [introActive, setIntroActive] = useState(true);
   const { sceneRef, activeGalaxy, motionMode, focusGalaxy, gyroActive, sensorPrompt, enableGyro } = useUniverseMotion(!introActive);
@@ -126,6 +127,7 @@ export function UniversePreview() {
           <Link className={styles.homeLink} href="/">回到 E.X 主站 <span aria-hidden="true">↗</span></Link>
         </div>
       </section>
+      {showPropertyMediaEntry && !introActive ? <div className={styles.productionSecondaryEntry}><PropertyMediaEntry /></div> : null}
     </div>
   );
 }
