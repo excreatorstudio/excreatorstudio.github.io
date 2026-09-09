@@ -21,6 +21,8 @@ const pointerField = await read("src/components/universe/UniversePointerField.ts
 const navigation = await read("src/data/universe-navigation.ts");
 const styles = await read("src/app/universe-preview/universe-preview.module.css");
 const homepage = await read("src/app/page.tsx");
+const exAiPage = await read("src/app/ex-ai/page.tsx");
+const creatorHero = await read("src/components/CreatorStudioHero.tsx");
 const header = await read("src/components/Header.tsx");
 const utilityHeader = await read("src/components/universe/UniverseHeader.tsx");
 const packageJson = JSON.parse(await read("package.json"));
@@ -203,6 +205,20 @@ test("production root cuts over to the shared Universe and stays indexable", () 
   assert.ok(header.includes('pathname === "/" || pathname === "/universe-preview"'));
   assert.match(utilityHeader, /isRoot/);
   assert.match(utilityHeader, /universeHref/);
+});
+
+test("the central E.X Core enters the restored AI Creator Center route", async () => {
+  assert.equal(await exists("src/app/ex-ai/page.tsx"), true);
+  assert.match(homepage, /<UniversePreview showPropertyMediaEntry \/>/);
+  assert.match(navigation, /subtitle: "創作中心 × 創作者學院"/);
+  assert.match(navigation, /href: "\/ex-ai\//);
+  assert.match(core, /href=\{universeCore\.href\}/);
+  for (const contract of ["CreatorStudioHero", "E\.X AI App Ecosystem", "AiLearningStationEntry", "CreatorAcademyPromo", "Creator Categories", "MembershipPreview", "Latest tutorial", "Popular resources", "PropertyMediaEntry"]) {
+    assert.match(exAiPage, new RegExp(contract));
+  }
+  assert.match(creatorHero, /E\.X AI 創作中心/);
+  assert.match(creatorHero, /× 創作者學院/);
+  assert.match(creatorHero, /creator-hero__circuit-overlay/);
 });
 
 test("the first composition renders the four primary galaxies and safe destinations", () => {
