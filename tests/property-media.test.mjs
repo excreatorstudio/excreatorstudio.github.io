@@ -150,3 +150,97 @@ test("Property Media Stage 2A.1.2 blends gold veins and fine cracks with a perio
   assert.match(css, /animation-duration: 12s/);
   assert.match(css, /@media \(prefers-reduced-motion: reduce\)/);
 });
+
+test("Property Media vNext assets are present and the intro v2 path is registered without activation", () => {
+  const data = read("src/data/property-media.ts");
+  const vnext = read("src/data/property-media-vnext.ts");
+  const experience = read("src/components/property-media/PropertyMediaExperience.tsx");
+  const files = [
+    "public/images/property-media/hero/property-media-hero-bright-wide.png",
+    "public/images/property-media/backgrounds/property-media-obsidian-gold.png",
+    "public/media/property-media/intro/property-media-intro-v2.mp4",
+    "docs/design/property-media/vnext/property-media-vnext-reference-01.png",
+    "docs/design/property-media/vnext/property-media-vnext-reference-02.png",
+    "docs/design/property-media/vnext/property-media-vnext-fullpage-reference.png",
+  ];
+  for (const file of files) assert.ok(fs.existsSync(path.join(root, file)), file);
+  assert.match(data, /propertyMediaIntroV2 = "\/media\/property-media\/intro\/property-media-intro-v2\.mp4"/);
+  assert.match(vnext, /propertyMediaVnextIntro = propertyMediaIntroV2/);
+  assert.match(vnext, /propertyMediaVnextOrbit/);
+  assert.doesNotMatch(experience, /propertyMediaIntroV2|propertyMediaVnextOrbit/);
+  assert.match(read(".gitattributes"), /public\/media\/property-media\/\*\*\/\*\.mp4 filter=lfs/);
+});
+
+test("Property Media vNext orbit projection has three ordered featured worlds with presenter centered", () => {
+  const vnext = read("src/data/property-media-vnext.ts");
+  const categories = [...vnext.matchAll(/category: "(immersive|presenter|ai-staging)"/g)].map((match) => match[1]);
+  assert.deepEqual(categories, ["immersive", "presenter", "ai-staging"]);
+  assert.deepEqual([...vnext.matchAll(/placement: "(left|center|right)"/g)].map((match) => match[1]), ["left", "center", "right"]);
+  assert.equal((vnext.match(/defaultActive: true/g) ?? []).length, 1);
+  assert.match(vnext, /portfolioItemId: "presenter-01"[\s\S]*?title: "空間口播導覽"[\s\S]*?defaultActive: true/);
+  assert.match(vnext, /portfolioItemId: "immersive-01"/);
+  assert.match(vnext, /portfolioItemId: "ai-staging-01"/);
+  assert.match(vnext, /cardAspectRatio: "3:4"/);
+  assert.match(vnext, /openedMediaAspectRatio: "native"/);
+  assert.match(vnext, /displayAspectRatio: propertyMediaVnextDisplayContract\.cardAspectRatio/);
+  assert.match(vnext, /openedAspectRatio: propertyMediaVnextDisplayContract\.openedMediaAspectRatio/);
+  assert.match(vnext, /lightboxTarget/);
+  assert.match(vnext, /cardObjectFit: "cover"/);
+  assert.match(vnext, /lightboxObjectFit: "contain"/);
+  assert.match(read("src/components/property-media/PropertyMediaLightbox.tsx"), /item\.aspectRatio/);
+  assert.match(read("src/components/property-media/property-media.module.css"), /\.lightboxVideo \{[\s\S]*object-fit: contain/);
+});
+
+test("Property Media vNext contracts are documented separately from the Phase 2 visual implementation", () => {
+  const plan = read("docs/property-media/vnext-plan.md");
+  const assets = read("docs/property-media/vnext-asset-map.md");
+  assert.match(plan, /Phase 1 Foundation/);
+  assert.match(plan, /Phase 2 — visual implementation pending/);
+  assert.match(plan, /3:4/);
+  assert.match(plan, /native/);
+  assert.match(plan, /presenter-01/);
+  assert.match(plan, /Orbit component API contract/);
+  assert.match(plan, /Phase 1\.5 — implementation prep complete/);
+  assert.match(plan, /touch-action: pan-y/);
+  assert.match(assets, /property-media-intro-v2\.mp4/);
+  assert.match(assets, /Duration\/resolution unavailable/);
+  assert.match(assets, /never a runtime dependency/);
+  assert.match(assets, /10–14 seconds/);
+});
+
+test("Property Media vNext orbit foundation is reusable, accessible and not mounted in production", () => {
+  const orbit = read("src/components/property-media/PropertyMediaOrbit.tsx");
+  const card = read("src/components/property-media/PropertyMediaOrbitCard.tsx");
+  const orbitCss = read("src/components/property-media/property-media-orbit.module.css");
+  const experience = read("src/components/property-media/PropertyMediaExperience.tsx");
+
+  assert.match(orbit, /activeIndex\?: number/);
+  assert.match(orbit, /defaultActiveIndex\?: number/);
+  assert.match(orbit, /onActiveIndexChange/);
+  assert.match(orbit, /onSelect/);
+  assert.match(orbit, /onOpenMedia\?: \(item: PropertyMediaPortfolioItem\)/);
+  assert.match(orbit, /PROPERTY_MEDIA_ORBIT_DRAG_THRESHOLD_PX = 48/);
+  assert.match(orbit, /PROPERTY_MEDIA_ORBIT_CLICK_SLOP_PX = 8/);
+  assert.match(orbit, /onPointerDown/);
+  assert.match(orbit, /onPointerMove/);
+  assert.match(orbit, /onPointerUp/);
+  assert.match(orbit, /onPointerCancel/);
+  assert.match(orbit, /setPointerCapture/);
+  assert.match(orbit, /releasePointerCapture/);
+  assert.match(orbit, /ArrowLeft/);
+  assert.match(orbit, /ArrowRight/);
+  assert.match(orbit, /scrollIntoView/);
+  assert.match(orbit, /prefers-reduced-motion/);
+  assert.match(orbit, /toPropertyMediaPortfolioItem/);
+  assert.match(card, /aria-pressed/);
+  assert.match(card, /onOpenMedia/);
+  assert.match(card, /data-display-aspect-ratio/);
+  assert.doesNotMatch(orbit, /<video/);
+  assert.doesNotMatch(card, /<video/);
+  assert.match(orbitCss, /aspect-ratio: var\(--property-media-orbit-card-aspect-ratio\)/);
+  assert.match(orbitCss, /scroll-snap-type: x mandatory/);
+  assert.match(orbitCss, /touch-action: pan-y/);
+  assert.match(orbitCss, /min-height: 2\.75rem/);
+  assert.match(orbitCss, /prefers-reduced-motion: reduce/);
+  assert.doesNotMatch(experience, /PropertyMediaOrbit/);
+});
