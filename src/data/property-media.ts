@@ -23,7 +23,7 @@ const items = (category: string, count: number, label: string): PropertyMediaIte
   });
 
 export const propertyMediaIntro = "/media/property-media/intro/property-media-intro.mp4";
-// Registered for the vNext foundation only; Stage 1 production continues to use propertyMediaIntro.
+// vNext production source; the legacy asset remains available and unchanged.
 export const propertyMediaIntroV2 = "/media/property-media/intro/property-media-intro-v2.mp4";
 
 export const propertyMediaCategories: readonly PropertyMediaCategory[] = [

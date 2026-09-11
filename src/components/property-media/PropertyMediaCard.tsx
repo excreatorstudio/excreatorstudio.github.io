@@ -19,7 +19,7 @@ export function PropertyMediaCard({ item, featured = false, onOpen }: PropertyMe
       aria-label={`開啟作品：${item.title}`}
     >
       <span className={styles.workMedia}>
-        <Image src={item.thumbnail} alt={`${item.title}預覽畫面`} width={900} height={featured ? 1125 : 1600} unoptimized priority={featured} />
+        <Image src={item.thumbnail} alt={`${item.title}預覽畫面`} width={900} height={1200} unoptimized loading="lazy" />
         <span className={styles.playAffordance} aria-hidden="true">播放</span>
       </span>
       <span className={styles.workMeta}>

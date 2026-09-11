@@ -65,3 +65,11 @@
 @media (prefers-reduced-motion: reduce) {
   .portfolio::after { animation: none; opacity: .1; mix-blend-mode: normal; }
 }
+.selectedWorks.selectedWorks, .portfolio.portfolio { background: transparent; margin-inline: 0; padding-inline: 0; overflow: visible; }
+.selectedWorks.selectedWorks::before, .selectedWorks.selectedWorks::after, .portfolio.portfolio::before, .portfolio.portfolio::after { display: none; animation: none; }
+.featuredWorks.featuredWorks, .gallery.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px 24px; align-items: start; }
+.featuredWorks.featuredWorks .workCard, .gallery.gallery .workCard { grid-column: auto; margin-top: 0; min-width: 0; }
+.featuredWorks .workCard .workMedia, .gallery .workCard .workMedia { aspect-ratio: 3 / 4; }
+.featuredWorks .workMedia img, .gallery .workMedia img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 1023px) { .featuredWorks.featuredWorks, .gallery.gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; } }
+@media (max-width: 374px) { .featuredWorks.featuredWorks, .gallery.gallery { grid-template-columns: minmax(0, 1fr); } }

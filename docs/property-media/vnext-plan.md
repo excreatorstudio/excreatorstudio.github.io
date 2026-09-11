@@ -1,4 +1,38 @@
-# E.X Property Media vNext — Phase 1.5 Implementation Prep
+# E.X Property Media vNext — Phase 2
+
+## Phase 2.1 — true orbit ring and static-image spatial viewer
+
+Phase 2 was manually approved before this pass. Intro/Hero/transition/Selected Works/Lightbox are unchanged in this pass.
+
+- Ring extends the approved three-item projection with six verified IDs: immersive-02, presenter-02, immersive-03, presenter-03, immersive-04, presenter-04. Initial front order and presenter default are unchanged. Every selection recomputes all ring planes; no random ordering or JS animation loop.
+- Desktop has progressively smaller/dimmer rear cases. Tablet reduces rear density; mobile hides rear cards while previous/next and swipe still cycle through every item. Posters only; media-open uses the original portfolio adapter and Lightbox.
+- Real asset: /images/floor-plan-showcase.png, copied byte-for-byte from the user-supplied parent checkout file. SHA256 C39BB90011E76CD4FB88C47A12D2010D9CEEE5B6BA4BCEB542D73E67DD0D8B7A. Reference docs/references/floor-plan-showcase-ref.png is viewed only, never rendered.
+- FloorPlanShowcase mode="image": native-ratio contain image; bounded yaw ±6°, pitch ±3°, zoom 0.92–1.08. Explicit left/center/right presets, zoom, enlarged native dialog, Escape/focus restoration. Mouse drag only; mobile page scroll takes precedence, using tap controls.
+- Room controls mark a type only, with an explicit future-location disclosure; no invented hotspots or camera movement. The actual asset is one static image, NOT a GLB or true complete 360 model.
+- One-time viewport entrance; subtle 13s ambient while visible, paused during drag/modal background. Reduced motion disables entrance/ambient/perspective and leaves static viewing, zoom and navigation.
+- Phase 2.1 visual/device acceptance remains human review. No commit, push or deploy.
+
+## Phase 2 — implemented, human visual review pending
+
+This section supersedes the historical Phase 1/1.5 activation restrictions below.
+
+- Intro v2 is active after a real Sound On click. The approved local input is 19,902,447 bytes, SHA256 99b103154290626748f2e61be05c9831eb41e421e40fc7b288fe93e6ce810f66. Its original path and Git LFS rule are unchanged; legacy intro retained.
+- Playback rejection, error, Skip, Escape or 12-second playback stall starts the same safe handoff. No audible autoplay or fake gesture. A finite 900ms volume ramp requests 8–55% volume; iOS may retain hardware-controlled volume.
+- Handoff is 1500ms: frozen video/haze → room at 300ms → orbit at 870ms → copy and interaction at 1500ms. Reduced motion uses 220ms without animated blur/zoom.
+- The bright room and upper-left title are active. Existing three-item projection is mounted; presenter remains default center. No portfolio record duplication.
+- One Pointer Events system commits horizontal gestures at 48px and center-snaps by transform. Vertical movement cancels candidate drag; side controls and local arrow keys remain available. No competing native scroll carousel.
+- Orbit and Selected Works use 3:4 exterior frames. Posters only; existing Lightbox keeps native contain playback, body scroll lock, Escape and focus restoration.
+- 360° section is ASSET PENDING: no verified floor-plan image or sequence was found under Property Media assets. Empty/static/sequence API exists; no fabricated layout or fake rotation.
+- Compact floor section blends into the supplied obsidian material; one background-only 12.8-second sweep (13.5s mobile), disabled under reduced motion.
+- No inquiry, scheduling, backend, dependency, homepage or other module changes.
+
+Human acceptance remains required at 320 / 390 / 430 / 768 / 1024 / 1440: sound, haze continuity, room crop, orbit scale/position, swipe feel, native video controls, floor blend and background motion. No commit, push or deploy.
+
+### Local preview checkpoint
+
+Static export served at http://127.0.0.1:4175/property-media/ with the local Python HTTP server. This previews exported HTML/CSS/JS; it does not reproduce a production CDN's video Range/cache behavior.
+
+Built-in browser observed Sound On → video → Hero, default presenter, next selection → AI staging, Lightbox open, contain playback, Escape and focus return. Horizontal document width equals client width at 320, 390, 430, 768, 1024, 1440. Real touch drag feel, iPhone sound/volume, reduced-motion device settings, frame-perfect handoff and material visual quality require human review. Browser checks are not visual approval.
 
 ## Scope boundary
 

@@ -11,6 +11,7 @@ type PropertyMediaLightboxProps = {
 
 export function PropertyMediaLightbox({ item, onClose }: PropertyMediaLightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const previousFocus = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -22,8 +23,11 @@ export function PropertyMediaLightbox({ item, onClose }: PropertyMediaLightboxPr
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
       if (event.key === "Tab") {
-        event.preventDefault();
-        closeRef.current?.focus();
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>("button, video");
+        if (!focusable?.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -37,7 +41,7 @@ export function PropertyMediaLightbox({ item, onClose }: PropertyMediaLightboxPr
   if (!item) return null;
 
   return (
-    <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label={`${item.title}影片播放`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div ref={dialogRef} className={styles.lightbox} role="dialog" aria-modal="true" aria-label={`${item.title}影片播放`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div className={`${styles.lightboxInner} ${item.aspectRatio === "portrait" ? styles.lightboxPortrait : styles.lightboxLandscape}`}>
         <button ref={closeRef} type="button" className={styles.lightboxClose} onClick={onClose} aria-label="關閉影片播放">關閉 <span aria-hidden="true">×</span></button>
         <video className={styles.lightboxVideo} src={item.media} poster={item.poster} controls autoPlay playsInline preload="metadata" />

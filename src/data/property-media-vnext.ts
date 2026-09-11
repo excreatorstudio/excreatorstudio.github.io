@@ -64,8 +64,7 @@ const orbitItem = ({
 };
 
 /**
- * Phase 1 projection for the future Cinematic Orbit Gallery.
- * It references existing portfolio IDs and is intentionally not mounted by production UI yet.
+ * Approved first-view projection. The ring extends these references, not the media library.
  */
 export const propertyMediaVnextOrbit = [
   orbitItem({
@@ -98,6 +97,28 @@ export const propertyMediaVnextOrbit = [
 ] as const satisfies readonly PropertyMediaOrbitItem[];
 
 export const propertyMediaVnextIntro = propertyMediaIntroV2;
+
+/** Fixed rear sequence: every entry resolves to an existing verified portfolio record. */
+const rearPortfolioIds = [
+  "immersive-02", "presenter-02", "immersive-03",
+  "presenter-03", "immersive-04", "presenter-04",
+] as const;
+
+export const propertyMediaOrbitRing: readonly PropertyMediaOrbitItem[] = [
+  ...propertyMediaVnextOrbit,
+  ...rearPortfolioIds.map((id, index) => {
+    const source = sourceFor(id);
+    return orbitItem({
+      portfolioItemId: id,
+      placement: "right",
+      order: index + propertyMediaVnextOrbit.length,
+      category: source.category === "PRESENTER" ? "presenter" : "immersive",
+      title: source.title,
+      englishSubtitle: source.subtitle,
+      defaultActive: false,
+    });
+  }),
+];
 
 /** Adapts a vNext orbit selection back to the existing Lightbox portfolio contract. */
 export const toPropertyMediaPortfolioItem = (item: PropertyMediaOrbitItem): PropertyMediaPortfolioItem => sourceFor(item.portfolioItemId);
