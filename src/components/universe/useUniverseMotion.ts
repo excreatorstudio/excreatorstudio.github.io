@@ -7,6 +7,11 @@ import { universeGalaxies } from "@/data/universe-navigation";
 type GalaxyId = UniverseGalaxy["id"];
 export type MotionMode = "full" | "low-gpu" | "mobile-safe" | "reduced";
 
+// A bounded viewport-relative depth signal, never a navigation/active-state decision.
+export function corridorProgress(center: number, scrollY: number, viewportHeight: number) {
+  return Math.max(-1, Math.min(1, (scrollY + viewportHeight * .48 - center) / Math.max(240, viewportHeight * .7)));
+}
+
 /** One demand-driven frame loop owns all spatial transforms. No React updates per frame. */
 export function useUniverseMotion(enabled = true) {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -28,11 +33,13 @@ export function useUniverseMotion(enabled = true) {
     const lowGpu = hardware.connection?.saveData === true || ((hardware.deviceMemory ?? 8) <= 2 && (navigator.hardwareConcurrency || 8) <= 2);
     const nodes = universeGalaxies.map(galaxy => ({
       galaxy, element: root.querySelector<HTMLElement>(`[data-galaxy="${galaxy.id}"]`)!, weight: 0,
+      layoutCenter: 0, scroll: 0, scrollTarget: 0, emphasis: 0, emphasisTarget: 0,
       x: parseFloat(galaxy.position.x) / 50 - 1, y: parseFloat(galaxy.position.y) / 50 - 1,
     }));
     let mode: MotionMode = "reduced";
     let active: GalaxyId | null = null;
     let bounds = root.getBoundingClientRect();
+    let documentTop = bounds.top + (window.scrollY || 0);
     const target = { x: 0, y: 0, focusX: 0, focusY: 0, engaged: 0, lightX: 0, lightY: 0, gravity: 0, velocityX: 0, velocityY: 0 };
     const current = { ...target };
     let frame = 0;
@@ -150,6 +157,15 @@ export function useUniverseMotion(enabled = true) {
         if (Math.abs(destination - node.weight) < 0.0005) node.weight = destination;
         else unsettled = true;
         node.element.style.setProperty("--focus-weight", node.weight.toFixed(4));
+        // Reuse this loop; no layout reads and no React focus updates while scrolling.
+        for (const key of ["scroll", "emphasis"] as const) {
+          const destination = key === "scroll" ? node.scrollTarget : node.emphasisTarget;
+          node[key] += (destination - node[key]) * alpha;
+          if (Math.abs(destination - node[key]) < .0005) node[key] = destination;
+          else unsettled = true;
+        }
+        node.element.style.setProperty("--scroll-depth", node.scroll.toFixed(4));
+        node.element.style.setProperty("--corridor-emphasis", node.emphasis.toFixed(4));
       }
       if (unsettled) frame = requestAnimationFrame(tick);
     }
@@ -161,13 +177,22 @@ export function useUniverseMotion(enabled = true) {
       lastPointer = null;
       touchOrigin = null;
       syncSensor();
+      measure();
       wake();
     }
     function measure() {
       bounds = root.getBoundingClientRect();
+      documentTop = bounds.top + (window.scrollY || 0);
       root.style.setProperty("--field-half-width", `${root.clientWidth / 2}px`);
       root.style.setProperty("--field-half-height", `${root.clientHeight / 2}px`);
       for (const node of nodes) {
+        let offset = 0;
+        let ancestor: HTMLElement | null = node.element;
+        while (ancestor && ancestor !== root) {
+          offset += ancestor.offsetTop || 0;
+          ancestor = ancestor.offsetParent as HTMLElement | null;
+        }
+        node.layoutCenter = offset + (node.element.offsetHeight || 0) * .4;
         const parent = node.element.offsetParent as HTMLElement | null;
         if (parent?.clientWidth && parent.clientHeight) {
           node.x = node.element.offsetLeft / parent.clientWidth * 2 - 1;
@@ -187,6 +212,20 @@ export function useUniverseMotion(enabled = true) {
           node.element.style.setProperty("--depth-compensation-y", `${isStack ? 0 : -(centerY - parent.clientHeight * .46) * depthRatio}px`);
         }
       }
+      updateScroll();
+    }
+    function updateScroll() {
+      const dynamic = enabled && mobile.matches && mode === "mobile-safe" && !document.hidden;
+      for (const node of nodes) {
+        const progress = dynamic ? corridorProgress(documentTop + node.layoutCenter, window.scrollY || 0, window.innerHeight || 1) : 0;
+        node.scrollTarget = progress;
+        node.emphasisTarget = dynamic ? Math.max(0, 1 - Math.abs(progress) / .65) : 0;
+      }
+      if (dynamic) wake();
+    }
+    function scroll() {
+      if (mobile.matches) updateScroll(); // Cached layout geometry; native scrolling owns the page.
+      else measure(); // Preserve desktop pointer-space measurement.
     }
     function move(event: PointerEvent) {
       if (!enabled) return;
@@ -276,7 +315,7 @@ export function useUniverseMotion(enabled = true) {
     root.addEventListener("pointerleave", leave, { passive: true });
     root.addEventListener("focusin", focusIn);
     root.addEventListener("focusout", focusOut);
-    window.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("scroll", scroll, { passive: true });
     reduced.addEventListener("change", updateMode);
     mobile.addEventListener("change", updateMode);
     document.addEventListener("visibilitychange", visibility);
@@ -296,7 +335,7 @@ export function useUniverseMotion(enabled = true) {
       root.removeEventListener("pointerleave", leave);
       root.removeEventListener("focusin", focusIn);
       root.removeEventListener("focusout", focusOut);
-      window.removeEventListener("scroll", measure);
+      window.removeEventListener("scroll", scroll);
       reduced.removeEventListener("change", updateMode);
       mobile.removeEventListener("change", updateMode);
       document.removeEventListener("visibilitychange", visibility);

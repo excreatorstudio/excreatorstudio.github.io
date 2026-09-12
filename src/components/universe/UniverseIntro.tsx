@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { createIntroAudio, type IntroAudioStatus } from "./intro-audio";
 import styles from "@/app/universe-preview/universe-preview.module.css";
 
 const seenKey = "ex-creator-universe-intro-seen";
@@ -13,7 +14,8 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
   const [leaving, setLeaving] = useState(false);
   const [skipReady, setSkipReady] = useState(false);
   const [simple, setSimple] = useState(false);
-  const [audioStatus, setAudioStatus] = useState("pending");
+  const [audioStatus, setAudioStatus] = useState<IntroAudioStatus>("pending");
+  const audioControl = useRef<ReturnType<typeof createIntroAudio> | null>(null);
   const finishRef = useRef<() => void>(() => {});
   const progressRef = useRef<() => void>(() => {});
 
@@ -22,14 +24,12 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
     let finished = false;
     let fade: ReturnType<typeof setTimeout>;
     let watchdog: ReturnType<typeof setTimeout>;
-    const audio = new Audio();
-    audio.preload = "none";
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const finish = () => {
       if (finished) return;
       finished = true;
       clearTimeout(watchdog);
-      audio?.pause();
+      audioControl.current?.stop();
       video.current?.pause(); // Keep the last decoded frame throughout the bridge.
       try { sessionStorage.setItem(seenKey, "true"); } catch { /* Storage is optional. */ }
       setLeaving(true);
@@ -48,11 +48,6 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
     setSource(matchMedia("(max-width: 767px)").matches
       ? "/video/ex-creator-universe-intro-phone.mp4"
       : "/video/ex-creator-universe-intro.mp4");
-    audio.src = "/video/ex-creator-universe-mo.wav";
-    audio.volume = .35;
-    // A single autoplay attempt. Never retry on unrelated clicks or bypass policy.
-    void audio.play().then(() => { if (!finished) setAudioStatus("played"); })
-      .catch(() => { if (!finished) setAudioStatus("blocked-safely"); });
     const skip = setTimeout(() => setSkipReady(true), 500);
     watchdog = setTimeout(finish, 8000);
     const progress = () => { clearTimeout(watchdog); watchdog = setTimeout(finish, 8000); };
@@ -63,20 +58,39 @@ export function UniverseIntro({ onComplete, onBridge }: { onComplete: () => void
     return () => {
       finished = true;
       clearTimeout(fade); clearTimeout(watchdog); clearTimeout(skip); clearTimeout(limit);
-      audio?.pause();
+      audioControl.current?.stop();
       progressRef.current = () => {};
       reduced.removeEventListener("change", motionChange);
     };
   }, [onComplete, onBridge]);
 
   useEffect(() => {
-    if (source) void video.current?.play().catch(() => finishRef.current());
+    const element = video.current;
+    if (!source || !element) return;
+    const audio = new Audio();
+    audio.preload = "metadata";
+    audio.src = "/video/ex-creator-universe-mo.wav";
+    audio.volume = .35;
+    const controller = createIntroAudio(element, audio, setAudioStatus);
+    audioControl.current = controller;
+    void element.play().catch(() => finishRef.current());
+    return () => {
+      controller.dispose();
+      audioControl.current = null;
+    };
   }, [source]);
 
   if (!mounted) return null;
   return createPortal(<div className={styles.introOverlay} data-leaving={leaving} data-simple={simple} data-audio-status={audioStatus} role="dialog" aria-label="E.X Creator Universe 開場動畫" aria-modal="true">
     <video ref={video} src={source} autoPlay muted playsInline preload="auto" onTimeUpdate={() => progressRef.current()} onEnded={() => finishRef.current()} onError={() => finishRef.current()} />
     <div className={styles.opticalBloom} aria-hidden="true" />
+    <button type="button" className={styles.introSound} disabled={leaving || audioStatus === "ended"} aria-label={audioStatus === "played" ? "靜音 Intro 音樂" : "開啟音效 Sound"} aria-pressed={audioStatus === "played"} onClick={() => {
+      if (leaving) return;
+      if (audioStatus === "played") audioControl.current?.mute();
+      else audioControl.current?.enable();
+    }}>
+      <span aria-hidden="true">{audioStatus === "played" ? "🔊" : "🔇"}</span> {audioStatus === "played" ? "音樂" : "靜音"} <small>Sound</small>
+    </button>
     <button autoFocus className={styles.introSkip} data-ready={skipReady} aria-label="略過 E.X Creator Universe 開場動畫" onClick={() => finishRef.current()}>略過動畫 <small>Skip intro</small></button>
   </div>, document.body);
 }

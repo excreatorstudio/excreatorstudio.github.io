@@ -74,14 +74,16 @@ export function UniversePreview({ showPropertyMediaEntry = false }: { showProper
         <div className={styles.heroCopy}>
           <p className={styles.eyebrow}>WORLDS WITHIN REACH</p>
           <h1 id="universe-title"><span>E.X</span> CREATOR UNIVERSE</h1>
-          <p className={styles.valueProposition}>創作、學習、語言與洞察，<br />匯聚成你的 AI 工作宇宙。</p>
+          <p className={styles.valueProposition}>整合 AI 影音、創作者學習、語言互動與資訊工具。</p>
           <p className={styles.valueEnglish}>Create · Learn · Connect · Discover</p>
           <button type="button" className={styles.exploreButton} data-primary-cta="true" onClick={() => {
             focusGalaxy("knowledge");
             sceneRef.current?.querySelector<HTMLAnchorElement>('[data-galaxy-main="knowledge"]')?.focus({ preventScroll: true });
             if (window.matchMedia("(max-width: 767px)").matches) sceneRef.current?.querySelector('[data-galaxy="knowledge"]')?.scrollIntoView({ block: "center", behavior: motionMode === "reduced" ? "instant" : "smooth" });
           }}>開始探索 <small>Start Exploring</small></button>
-          {sensorPrompt ? <button type="button" className={styles.spatialEnable} onClick={enableGyro}>啟用 3D 空間感 <small>3D Spatial</small></button> : null}
+          <div className={styles.spatialSlot}>
+            {sensorPrompt ? <button type="button" className={styles.spatialEnable} onClick={enableGyro}>啟用 3D 空間感 <small>3D Spatial</small></button> : null}
+          </div>
         </div>
 
         <UniversePointerField sceneRef={sceneRef}>
@@ -124,7 +126,7 @@ export function UniversePreview({ showPropertyMediaEntry = false }: { showProper
               {universeGalaxies.map((galaxy) => <Link href={galaxy.href} key={galaxy.id}>{galaxy.title}</Link>)}
             </nav>
           </details>
-          <Link className={styles.homeLink} href="/">回到 E.X 主站 <span aria-hidden="true">↗</span></Link>
+          <Link className={styles.homeLink} href="/ex-ai/">進入創作中心 <span aria-hidden="true">↗</span></Link>
         </div>
       </section>
       {showPropertyMediaEntry && !introActive ? <div className={styles.productionSecondaryEntry}><PropertyMediaEntry /></div> : null}

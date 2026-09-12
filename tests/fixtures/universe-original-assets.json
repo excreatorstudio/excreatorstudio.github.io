@@ -1,0 +1,37 @@
+{
+  "sourceCommit": "e4613d745c546c361e29caf315e0701efd4d4d66",
+  "files": [
+    {
+      "path": "public/images/universe/background-depth-v1.png",
+      "sha256": "c614edb8b45a25615f9b459270dbc37ca95c723388fb1b8254ceba072d17c7da"
+    },
+    {
+      "path": "public/images/universe/core-v2.png",
+      "sha256": "dac4b4a1f3608180de8f51e46856fa38d1abc5bf871687feac17b552b7644bae"
+    },
+    {
+      "path": "public/images/universe/create-v2.png",
+      "sha256": "9600112216f3b4f9be5b70380cc074d4b7f5db60c324e77501ba4ad8444c0b01"
+    },
+    {
+      "path": "public/images/universe/insight-v2.png",
+      "sha256": "ba4244b4adfea1a55897d1b04e290818920694909c6d83d4ac8ca66b6ae26142"
+    },
+    {
+      "path": "public/images/universe/knowledge-v2.png",
+      "sha256": "0e07656051c46d6c7f9a3656a1bb50b88c7160f75349be47b03986023e6cadac"
+    },
+    {
+      "path": "public/images/universe/language-v2.png",
+      "sha256": "71a09628edcc5e16e345880d9085bcd7d5786d9ad06b183a049c030dc15712ea"
+    },
+    {
+      "path": "public/video/ex-creator-universe-intro-phone.mp4",
+      "sha256": "6f7064beafc9f80fec41ef447b867f0f1208d5a9033f359377534306d1fea92b"
+    },
+    {
+      "path": "public/video/ex-creator-universe-intro.mp4",
+      "sha256": "d8897a93c0d327c0de3b30cd43bb644ce337e261ee031f705cc3e3c07e27de55"
+    }
+  ]
+}

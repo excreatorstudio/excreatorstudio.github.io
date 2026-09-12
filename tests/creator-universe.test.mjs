@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import test from "node:test";
 import vm from "node:vm";
-import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { runtimeGraph, universeEntries } from "./helpers/universe-boundary.mjs";
+import { verifyProductionAssets } from "./helpers/universe-assets.mjs";
 import ts from "typescript";
 
 const root = new URL("../", import.meta.url);
@@ -25,7 +27,6 @@ const exAiPage = await read("src/app/ex-ai/page.tsx");
 const creatorHero = await read("src/components/CreatorStudioHero.tsx");
 const header = await read("src/components/Header.tsx");
 const utilityHeader = await read("src/components/universe/UniverseHeader.tsx");
-const packageJson = JSON.parse(await read("package.json"));
 
 // Execute the real hook against controlled platform events, without a browser or sensors.
 function sensorHarness({ enabled = true, reduced = false, low = false, requestPermission } = {}) {
@@ -159,9 +160,11 @@ test("cinematic bridge retains video and delays interaction with safe audio and 
   assert.match(intro, /video.current\?\.pause\(\)/);
   assert.match(intro, /useSimple \? 240.*650 : 850/);
   assert.match(intro, /if \(!useSimple\) onBridge\(\)/);
-  assert.match(intro, /blocked-safely/);
+  const audioPolicy = await read("src/components/universe/intro-audio.ts");
+  assert.match(audioPolicy, /blocked-safely/);
   assert.doesNotMatch(intro, /addEventListener\("pointerdown"|addEventListener\("keydown"/);
-  assert.equal((intro.match(/audio.play\(\)/g) ?? []).length, 1);
+  assert.equal((audioPolicy.match(/audio.play\(\)/g) ?? []).length, 1);
+  assert.doesNotMatch(audioPolicy, /addEventListener\("pointerdown"|addEventListener\("keydown"/);
   assert.match(scene, /data-bridging=\{bridging && introActive\}/);
   assert.match(scene, /inert=\{introActive\}/);
   assert.match(styles, /bridge-bloom 850ms/);
@@ -260,7 +263,8 @@ test("motion safety and mobile safe mode remain explicit", () => {
 
 test("reference assets are not runtime dependencies and production root keeps the safe entry", () => {
   assert.doesNotMatch(`${route}\n${scene}\n${core}\n${node}`, /assets\/references\/ex-creator-universe/);
-  assert.doesNotMatch(JSON.stringify(packageJson.dependencies), /three|react-three-fiber|gsap/i);
+  const project = fileURLToPath(root);
+  assert.doesNotThrow(() => runtimeGraph(project, universeEntries(project)));
   assert.match(homepage, /UniversePreview/);
   assert.match(scene, /PropertyMediaEntry/);
 });
@@ -392,8 +396,8 @@ test("Phase 2D header is shared utility navigation with no fake accounts", async
 
 test("Phase 2D one CTA focuses a real world and secondary links are separate accessible actions", () => {
   assert.equal((scene.match(/data-primary-cta="true"/g) ?? []).length,1);
-  assert.match(scene, /創作、學習、語言與洞察，/);
-  assert.match(scene, /匯聚成你的 AI 工作宇宙。/);
+  assert.match(scene, /整合 AI 影音、創作者學習、語言互動與資訊工具。/);
+  assert.match(scene, /href="\/ex-ai\/">進入創作中心/);
   assert.match(scene, /Start Exploring/);
   assert.match(scene, /focus\(\{ preventScroll: true \}\)/);
   assert.match(node, /inert=\{!active\}/);
@@ -403,18 +407,10 @@ test("Phase 2D one CTA focuses a real world and secondary links are separate acc
   assert.match(motion, /\[data-galaxy\]:focus-within/);
 });
 
-test("media candidates preserve original hashes and remain outside runtime source paths", async () => {
-  const audit = JSON.parse(await read("public/images/universe/candidates/audit.json"));
-  for (const image of audit.images) {
-    const bytes = await readFile(new URL(`public/images/universe/${image.name}.png`, root));
-    assert.equal(createHash("sha256").update(bytes).digest("hex"), image.sha256);
-    for (const format of ["webp", "avif"]) assert.equal(await exists(`public/images/universe/candidates/${image.name}.${format}`),true);
-  }
-  for (const video of audit.videos) {
-    const bytes = await readFile(new URL(`public/video/${video.name}.mp4`,root));
-    assert.equal(createHash("sha256").update(bytes).digest("hex"), video.sha256);
-    assert.equal(await exists(`public/video/${video.name}-web.mp4`),true);
-  }
+test("production media preserves approved original hashes and excludes candidates", async () => {
+  const project = fileURLToPath(root);
+  const manifest = JSON.parse(await read("tests/fixtures/universe-original-assets.json"));
+  verifyProductionAssets(project, manifest, runtimeGraph(project, universeEntries(project)));
   assert.doesNotMatch(scene+node+core+styles, /\/candidates\//);
   assert.doesNotMatch(await read("src/components/universe/UniverseIntro.tsx"), /-web\.mp4/);
 });
