@@ -23,6 +23,15 @@ const loadTS = (relative) => {
 };
 
 // Exercise actual component handlers without starting a browser or downloading media.
+let frameClock = 0, frameId = 0;
+const frames = new Map();
+const flushFrames = () => {
+  for (let i = 0; frames.size && i < 100; i++) {
+    frameClock += 16;
+    const current = [...frames.values()]; frames.clear(); current.forEach(callback => callback(frameClock));
+  }
+  assert.equal(frames.size, 0, "Demand loop must stop after docking");
+};
 const loadComponent = (relative) => {
   const output = { exports: {} };
   const element = (type, props) => ({ type, props });
@@ -42,7 +51,11 @@ const loadComponent = (relative) => {
   const code = ts.transpileModule(read(relative), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX,
   } }).outputText;
-  vm.runInThisContext("(function(exports, require) {" + code + "\n})")(output.exports, requireLocal);
+  vm.runInThisContext("(function(exports, require, requestAnimationFrame, cancelAnimationFrame, performance, window) {" + code + "\n})")(
+    output.exports, requireLocal,
+    callback => { const id = ++frameId; frames.set(id, callback); return id; },
+    id => frames.delete(id), { now: () => frameClock }, { matchMedia: () => ({ matches: false }) },
+  );
   return output.exports;
 };
 const nodes = (node) => !node || typeof node !== "object" ? [] :
@@ -70,6 +83,65 @@ test("Orbit and grid cards open the existing media directly through one native b
   assert.equal(opened, item);
 });
 
+test("Fractional ring promotes multiple real cards before release and stays continuous at wrap", () => {
+  const { continuousOrbitPlane: pose } = loadTS("src/components/property-media/property-media-orbit-layout.ts");
+  for (const mobile of [true, false]) {
+    assert.notEqual(pose(1, 1, 9, mobile).x, pose(1, 1.4, 9, mobile).x);
+    assert.ok(pose(1, 1.4, 9, mobile).scale < pose(1, 1, 9, mobile).scale);
+    assert.ok(pose(2, 1.4, 9, mobile).scale > pose(2, 1, 9, mobile).scale);
+    for (let i = 0; i < 9; i++) {
+      assert.equal(pose(i, i + 9, 9, mobile).scale, 1);
+      assert.ok(Math.abs(pose(i, 8.99999, 9, mobile).x - pose(i, 9.00001, 9, mobile).x) < .001);
+    }
+  }
+  assert.ok(pose(3, 1.4, 9, true).opacity > 0, "Incoming rear neighbor participates before docking");
+});
+
+test("Gesture direction, maximum travel and short bounded inertia survive reversals and holding", () => {
+  const { moveOrbitGesture: move, orbitReleaseTarget: release } = loadTS("src/components/property-media/property-media-orbit-gesture.ts");
+  const fresh = () => ({ startX: 0, startY: 0, startPosition: 1, stride: 200, deltaX: 0,
+    axis: 'pending', maxTravel: 0, velocity: 0, samples: [{ x: 0, time: 0 }] });
+  let d = fresh(); assert.equal(move(d, -100, 0, 300), 1.5);
+  assert.equal(move(d, -40, 0, 600), 1.2, "Immediate direction reversal");
+  assert.equal(move(d, 0, 0, 800), 1); assert.equal(d.maxTravel, 100, "Out-and-back is still a drag");
+  assert.equal(release(d, 1, 1000, false), 1);
+  d = fresh(); move(d, -10, 0, 300); assert.equal(release(d, 1.05, 500, false), 1);
+  d = fresh(); move(d, -70, 0, 300); assert.equal(release(d, 1.35, 500, false), 2);
+  d = fresh(); move(d, -480, 0, 800); assert.equal(release(d, 3.4, 1000, false), 3);
+  d = fresh(); move(d, -30, 0, 15); assert.equal(release(d, 1.15, 20, false), 2);
+  assert.equal(release(d, 1.15, 20, true), 1, "Reduced motion removes inertia, not direct drag");
+  d = fresh(); move(d, 0, 30, 50); move(d, -200, 35, 70); assert.equal(d.axis, 'vertical');
+});
+
+test("Poster capture handover preserves live motion; actual owner loss cancels and next tap survives", () => {
+  const { PropertyMediaOrbit } = loadComponent("src/components/property-media/PropertyMediaOrbit.tsx");
+  const changes = [], orbit = PropertyMediaOrbit({ onActiveIndexChange: i => changes.push(i) });
+  const track = nodes(orbit).find(n => n.props?.role === 'list').props;
+  let captures = 0, captured = false;
+  const target = { dataset: {}, style: { setProperty() {} }, setPointerCapture() { captures++; captured = true; },
+    hasPointerCapture: () => captured, releasePointerCapture() { captured = false; } };
+  track.ref.current = target;
+  const cards = nodes(orbit).filter(n => n.props?.item).map(n => {
+    const properties = {}, card = { offsetWidth: 200, dataset: {}, style: { setProperty(k,v) { properties[k] = v; } } };
+    n.props.ref(card); return properties;
+  });
+  const event = { pointerId: 12, pointerType: 'touch', isPrimary: true, button: 0, clientX: 200, clientY: 200, timeStamp: 0, currentTarget: target, target: { tagName: 'IMG' } };
+  track.onPointerDown(event);
+  track.onPointerMove({ ...event, clientX: 170, timeStamp: 100 });
+  const first = cards.map(p => p['--mobile-scale']);
+  track.onLostPointerCapture(event); // IMG implicit capture loss bubbles to track.
+  track.onPointerMove({ ...event, clientX: 120, timeStamp: 200 });
+  assert.equal(captures, 1); assert.notEqual(cards[1]['--mobile-scale'], first[1]); assert.notEqual(cards[2]['--mobile-scale'], first[2]);
+  assert.deepEqual(changes, [], "No active selection while holding");
+  track.onPointerUp({ ...event, timeStamp: 400 }); flushFrames(); assert.deepEqual(changes, [2]);
+  let suppressed = false;
+  track.onClickCapture({ detail: 1, preventDefault() { suppressed = true; }, stopPropagation() {} }); assert.equal(suppressed, true);
+  track.onPointerDown(event); track.onPointerMove({ ...event, clientX: 170, timeStamp: 100 });
+  captured = false; track.onLostPointerCapture({ ...event, target }); flushFrames();
+  track.onPointerDown(event); track.onPointerUp(event); flushFrames();
+  track.onClickCapture({ detail: 1, preventDefault() { assert.fail('Next normal tap was eaten'); }, stopPropagation() {} });
+});
+
 test("Orbit suppresses mouse drags, touch swipes, scrolls and cancellation while preserving tap and keyboard", () => {
   const { PropertyMediaOrbit } = loadComponent("src/components/property-media/PropertyMediaOrbit.tsx");
   for (const kind of ["mouse", "touch"]) {
@@ -77,16 +149,18 @@ test("Orbit suppresses mouse drags, touch swipes, scrolls and cancellation while
       const changes = [];
       const orbit = PropertyMediaOrbit({ onActiveIndexChange: (index) => changes.push(index) });
       const track = nodes(orbit).find((node) => node.props?.role === "list").props;
-      const target = { style: { setProperty() {} }, setPointerCapture() {}, hasPointerCapture: () => false, releasePointerCapture() {} };
-      const event = { pointerId: 1, pointerType: kind, isPrimary: true, button: 0, clientX: 0, clientY: 0, currentTarget: target };
+      const target = { dataset: {}, style: { setProperty() {} }, setPointerCapture() {}, hasPointerCapture: () => false, releasePointerCapture() {} };
+      const event = { pointerId: 1, pointerType: kind, isPrimary: true, button: 0, clientX: 0, clientY: 0, currentTarget: target, target, timeStamp: 0 };
       track.onPointerDown(event);
-      if (["drag", "short-drag", "vertical"].includes(scenario)) track.onPointerMove({ ...event,
-        clientX: scenario === "drag" ? -80 : scenario === "short-drag" ? 16 : 0,
+      if (["drag", "short-drag", "vertical", "lost-capture"].includes(scenario)) track.onPointerMove({ ...event,
+        clientX: scenario === "drag" ? -80 : ["short-drag", "lost-capture"].includes(scenario) ? 16 : 0,
         clientY: scenario === "vertical" ? 80 : 0,
+        timeStamp: 100,
       });
       if (scenario === "cancel") track.onPointerCancel(event);
       else if (scenario === "lost-capture") track.onLostPointerCapture(event);
-      else track.onPointerUp(event);
+      else track.onPointerUp({ ...event, timeStamp: 300 });
+      flushFrames();
       let prevented = false;
       track.onClickCapture({ detail: 1, preventDefault: () => { prevented = true; }, stopPropagation() {} });
       assert.equal(prevented, scenario !== "tap", `${kind}: ${scenario}`);
@@ -181,8 +255,9 @@ test("Orbit depth planes cycle every item through center, sides and rear without
     }
   }
   const css = read("src/components/property-media/property-media-orbit.module.css");
-  assert.match(css, /max-width: 767px[\s\S]*data-orbit-placement='rear'[^}]*display: none/);
-  assert.doesNotMatch(read("src/components/property-media/PropertyMediaOrbit.tsx"), /Math\.random|requestAnimationFrame|<video/);
+  assert.match(css, /data-mobile-visible='false'[^}]*visibility: hidden/);
+  assert.doesNotMatch(css.split('@media (max-width: 767px)')[1], /display: none|translateX\(-149%\)|translateX\(49%\)/);
+  assert.doesNotMatch(read("src/components/property-media/PropertyMediaOrbit.tsx"), /Math\.random|setInterval|<video/);
 });
 
 test("Floor-plan perspective and zoom are bounded under large, invalid and repeated input", () => {
@@ -445,8 +520,8 @@ test("Property Media vNext orbit foundation is reusable, accessible and mounted 
   assert.match(orbit, /onActiveIndexChange/);
   assert.match(orbit, /onSelect/);
   assert.match(orbit, /onOpenMedia\?: \(item: PropertyMediaPortfolioItem\)/);
-  assert.match(orbit, /PROPERTY_MEDIA_ORBIT_DRAG_THRESHOLD_PX = 48/);
-  assert.match(orbit, /PROPERTY_MEDIA_ORBIT_CLICK_SLOP_PX = 8/);
+  assert.match(orbit, /PROPERTY_MEDIA_ORBIT_CLICK_SLOP_PX = ORBIT_CLICK_SLOP/);
+  assert.match(read("src/components/property-media/property-media-orbit-gesture.ts"), /ORBIT_CLICK_SLOP = 8/);
   assert.match(orbit, /onPointerDown/);
   assert.match(orbit, /onPointerMove/);
   assert.match(orbit, /onPointerUp/);
@@ -456,7 +531,7 @@ test("Property Media vNext orbit foundation is reusable, accessible and mounted 
   assert.match(orbit, /ArrowLeft/);
   assert.match(orbit, /ArrowRight/);
   assert.match(orbit, /plane=\{orbitPlane/);
-  assert.match(orbit, /vertical > Math\.abs\(drag\.deltaX\)/);
+  assert.match(read("src/components/property-media/property-media-orbit-gesture.ts"), /vertical > Math\.abs\(drag\.deltaX\)/);
   assert.match(orbit, /prefers-reduced-motion/);
   assert.match(orbit, /toPropertyMediaPortfolioItem/);
   assert.match(card, /aria-pressed/);

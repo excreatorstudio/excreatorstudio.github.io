@@ -1,6 +1,6 @@
 .orbit { --property-media-orbit-card-aspect-ratio: 3 / 4; --card-width: clamp(190px, 18vw, 248px); position: relative; width: 100%; color: #eee8dc; }
 .orbit:focus-visible { outline: 2px solid #ae8a51; outline-offset: -4px; }
-.track { position: relative; height: calc(var(--card-width) * 1.333 + 64px); perspective: 1100px; touch-action: pan-y; user-select: none; transform: translate3d(var(--drag-offset, 0px), 0, 0); }
+.track { position: relative; height: calc(var(--card-width) * 1.333 + 64px); perspective: 1100px; touch-action: pan-y pinch-zoom; user-select: none; transform: translate3d(var(--drag-offset, 0px), 0, 0); }
 .cardShell { position: absolute; left: 50%; top: 0; width: var(--card-width); transform: translateX(-50%) translate3d(calc(var(--card-width) * var(--ring-x)), var(--ring-y), 0) rotateY(var(--ring-yaw)) scale(var(--ring-scale)); opacity: var(--ring-opacity); transition: transform .65s cubic-bezier(.22,.65,.3,1), opacity .55s; }
 .cardShell[data-orbit-placement='rear'] .cardPoster { opacity: .76; }
 .cardShell[data-orbit-placement='rear'] .cardMeta { opacity: .6; }
@@ -25,5 +25,16 @@
 .status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .orbit button:focus-visible { outline: 2px solid #986a2f; outline-offset: 4px; }
 @media (min-width: 768px) and (max-width: 1023px) { .cardShell[data-orbit-distance='3'], .cardShell[data-orbit-distance='4'] { display: none; } }
-@media (max-width: 767px) { .orbit { --card-width: min(52vw, 228px); } .track { height: calc(var(--card-width) * 1.333 + 65px); } .cardShell[data-orbit-placement='rear'] { display: none; } .cardShell[data-orbit-placement='left'] { transform: translateX(-149%) translateY(12px) scale(.91); } .cardShell[data-orbit-placement='right'] { transform: translateX(49%) translateY(12px) scale(.91); } .cardMeta { padding: 30px 10px 12px; } .cardMeta strong { font-size: .8rem; } .cardMeta small { font-size: .55rem; } }
+/* Gesture/settle frames own transforms, so CSS never chases a finger or interrupted docking. */
+.track[data-motion] .cardShell { transition: none; }
+.track[data-motion='dragging'] .cardSelect { transition: none; transform: none; }
+@media (max-width: 767px) {
+  .orbit { --card-width: min(52vw, 228px); }
+  .track { height: calc(var(--card-width) * 1.333 + 65px); }
+  .cardShell { transition: none; transform: translateX(-50%) translate3d(calc(var(--card-width) * var(--mobile-x)), var(--mobile-y), 0) rotateY(var(--mobile-yaw)) scale(var(--mobile-scale)); opacity: var(--mobile-opacity); }
+  .cardShell[data-mobile-visible='false'] { pointer-events: none; visibility: hidden; }
+  .cardShell .cardPoster, .cardShell[data-orbit-placement='rear'] .cardPoster { opacity: 1; transition: none; }
+  .cardShell[data-orbit-placement='rear'] .cardMeta { opacity: 1; }
+  .cardMeta { padding: 30px 10px 12px; } .cardMeta strong { font-size: .8rem; } .cardMeta small { font-size: .55rem; }
+}
 @media (prefers-reduced-motion: reduce) { .cardShell, .cardPoster { transition: none; } .track { transform: none; } }

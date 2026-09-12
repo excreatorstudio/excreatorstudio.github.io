@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { forwardRef, type CSSProperties } from "react";
-import type { orbitPlane } from "./property-media-orbit-layout";
+import type { orbitPlane, continuousOrbitPlane } from "./property-media-orbit-layout";
 import type { PropertyMediaOrbitItem } from "@/data/property-media-vnext";
 import styles from "./property-media-orbit.module.css";
 
@@ -10,11 +10,12 @@ type PropertyMediaOrbitCardProps = {
   item: PropertyMediaOrbitItem;
   active: boolean;
   plane: ReturnType<typeof orbitPlane>;
+  mobilePlane?: ReturnType<typeof continuousOrbitPlane>;
   onSelect: (item: PropertyMediaOrbitItem) => void;
   onOpenMedia?: (item: PropertyMediaOrbitItem) => void;
 };
 
-export const PropertyMediaOrbitCard = forwardRef<HTMLElement, PropertyMediaOrbitCardProps>(function PropertyMediaOrbitCard({ item, active, plane, onSelect, onOpenMedia }, ref) {
+export const PropertyMediaOrbitCard = forwardRef<HTMLElement, PropertyMediaOrbitCardProps>(function PropertyMediaOrbitCard({ item, active, plane, mobilePlane = plane, onSelect, onOpenMedia }, ref) {
   return (
     <article
       ref={ref}
@@ -24,7 +25,10 @@ export const PropertyMediaOrbitCard = forwardRef<HTMLElement, PropertyMediaOrbit
       data-orbit-item-id={item.id}
       data-orbit-placement={plane.slot}
       data-orbit-distance={plane.distance}
-      style={{ "--ring-x": plane.x, "--ring-y": `${plane.y}px`, "--ring-scale": plane.scale, "--ring-yaw": `${plane.yaw}deg`, "--ring-opacity": plane.opacity, zIndex: plane.z } as CSSProperties}
+      data-mobile-visible={mobilePlane.opacity > .01 ? "true" : "false"}
+      style={{ "--ring-x": plane.x, "--ring-y": `${plane.y}px`, "--ring-scale": plane.scale, "--ring-yaw": `${plane.yaw}deg`, "--ring-opacity": plane.opacity,
+        "--mobile-x": mobilePlane.x, "--mobile-y": `${mobilePlane.y}px`, "--mobile-scale": mobilePlane.scale,
+        "--mobile-yaw": `${mobilePlane.yaw}deg`, "--mobile-opacity": mobilePlane.opacity, zIndex: plane.z } as CSSProperties}
       data-display-aspect-ratio={item.displayAspectRatio}
     >
       <button
