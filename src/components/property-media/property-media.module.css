@@ -73,3 +73,12 @@
 .featuredWorks .workMedia img, .gallery .workMedia img { width: 100%; height: 100%; object-fit: cover; }
 @media (max-width: 1023px) { .featuredWorks.featuredWorks, .gallery.gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; } }
 @media (max-width: 374px) { .featuredWorks.featuredWorks, .gallery.gallery { grid-template-columns: minmax(0, 1fr); } }
+.lightboxFrame { position: relative; min-width: 0; }
+.watermarkBounds { position: absolute; pointer-events: none; visibility: hidden; }
+.showcaseWatermark { position: absolute; top: 14px; right: 14px; max-width: calc(100% - 28px); color: #fff7e9; opacity: 0.20; font-size: clamp(10px, 1.1vw, 13px); line-height: 1.6; text-align: right; text-wrap: balance; pointer-events: none; text-shadow: 0 1px 2px #000; }
+.lightboxInner .lightboxClose { position: relative; top: auto; right: auto; justify-self: end; min-height: 44px; }
+.lightboxInner .lightboxVideo { max-height: 62dvh; }
+.lightboxInner .lightboxCaption { max-height: 18dvh; overflow-y: auto; }
+.lightboxCaption .showcaseDisclosure { display: grid; gap: .3rem; margin-top: .65rem; }
+.lightboxCaption .showcaseDisclosure p { color: #eee8de; font-size: .8rem; line-height: 1.65; letter-spacing: normal; font-weight: 400; }
+.showcaseDisclosure small { color: #c9c2b8; font-size: .73rem; line-height: 1.6; }

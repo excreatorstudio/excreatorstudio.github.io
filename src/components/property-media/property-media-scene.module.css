@@ -50,4 +50,11 @@
 .page button:focus-visible, .page a:focus-visible { outline: 2px solid #a7793e; outline-offset: 5px; }
 @media (max-width: 767px) { .hero { height: 790px; min-height: 0; } .heroBackground { background-position: 43% center; } .copy { top: 88px; left: 7%; } .copy h1 { font-size: clamp(1.55rem, 6.2vw, 2.5rem); } .orbitLayer { top: 30%; } .floorPlan { grid-template-columns: 1fr; gap: 20px; padding: 24px 7% 12px; } .floorPlan > div:first-child { color: #28251f; text-shadow: 0 1px 10px #fff5; } .obsidian { background-size: auto 1650px; } .obsidian::after { height: 500px; background-position: 43% bottom; } .surfaceLight { animation-duration: 13.5s; } }
 @media (max-width: 374px) { .hero { height: 730px; } .copy p { font-size: .6rem; } }
+/* Portrait-only framing: reduce the room image's cover magnification, not UI scale.
+   One video remains; feathered edges meet the existing dark intro, never a duplicate. */
+@media (max-width: 767px) and (orientation: portrait) {
+  .intro video { position: absolute; top: 9dvh; left: 0; height: 82dvh; object-position: center; mask-image: linear-gradient(transparent, #000 7%, #000 91%, transparent); }
+  .heroBackground { background-size: auto 82%; background-position: 43% top; background-color: #bcb4a6; }
+  .heroBackground::after { background: linear-gradient(90deg, #f4f0e153, transparent 55%), linear-gradient(transparent 72%, #bcb4a6 82%, #a8a092 100%); }
+}
 @media (prefers-reduced-motion: reduce) { .surfaceLight { animation: none; } .intro video { filter: none !important; transform: none !important; transition: opacity .15s; } .copy, .orbitLayer, .explore { transition: opacity .15s; transform: none !important; } .haze { transition: opacity .15s; } }

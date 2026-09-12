@@ -1,0 +1,113 @@
+{
+  "results": [
+    {
+      "width": 390,
+      "height": 844,
+      "intro": {
+        "source": "/media/property-media/intro/property-media-intro-v2.mp4",
+        "native": [
+          2560,
+          1440
+        ],
+        "time": 4,
+        "box": {
+          "width": 390,
+          "height": 844,
+          "y": 0
+        },
+        "fit": "cover",
+        "position": "50% 50%",
+        "transform": "none",
+        "visibleSourceWidth": 665.4028436018957
+      },
+      "hero": {
+        "width": 390,
+        "height": 790,
+        "backgroundSize": "cover",
+        "position": "43% 50%"
+      }
+    },
+    {
+      "width": 430,
+      "height": 932,
+      "intro": {
+        "source": "/media/property-media/intro/property-media-intro-v2.mp4",
+        "native": [
+          2560,
+          1440
+        ],
+        "time": 4,
+        "box": {
+          "width": 430,
+          "height": 932,
+          "y": 0
+        },
+        "fit": "cover",
+        "position": "50% 50%",
+        "transform": "none",
+        "visibleSourceWidth": 664.3776824034335
+      },
+      "hero": {
+        "width": 430,
+        "height": 790,
+        "backgroundSize": "cover",
+        "position": "43% 50%"
+      }
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "intro": {
+        "source": "/media/property-media/intro/property-media-intro-v2.mp4",
+        "native": [
+          2560,
+          1440
+        ],
+        "time": 4,
+        "box": {
+          "width": 320,
+          "height": 740,
+          "y": 0
+        },
+        "fit": "cover",
+        "position": "50% 50%",
+        "transform": "none",
+        "visibleSourceWidth": 622.7027027027027
+      },
+      "hero": {
+        "width": 320,
+        "height": 730,
+        "backgroundSize": "cover",
+        "position": "43% 50%"
+      }
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "intro": {
+        "source": "/media/property-media/intro/property-media-intro-v2.mp4",
+        "native": [
+          2560,
+          1440
+        ],
+        "time": 4,
+        "box": {
+          "width": 1440,
+          "height": 900,
+          "y": 0
+        },
+        "fit": "cover",
+        "position": "50% 50%",
+        "transform": "none",
+        "visibleSourceWidth": 2304
+      },
+      "hero": {
+        "width": 1440,
+        "height": 900,
+        "backgroundSize": "cover",
+        "position": "50% 52%"
+      }
+    }
+  ],
+  "errors": []
+}

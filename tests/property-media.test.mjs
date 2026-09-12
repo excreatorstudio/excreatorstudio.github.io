@@ -61,6 +61,49 @@ const loadComponent = (relative) => {
 const nodes = (node) => !node || typeof node !== "object" ? [] :
   [node, ...[node.props?.children].flat(Infinity).flatMap(nodes)];
 
+test("Mobile portrait framing changes only media surfaces and keeps the existing handoff", () => {
+  const css = read("src/components/property-media/property-media-scene.module.css");
+  const portrait = css.split("@media (max-width: 767px) and (orientation: portrait)")[1].split("@media (prefers-reduced-motion")[0];
+  assert.match(portrait, /\.intro video\s*\{[^}]*height: 82dvh/);
+  assert.match(portrait, /\.heroBackground\s*\{[^}]*background-size: auto 82%/);
+  assert.doesNotMatch(portrait, /\.orbitLayer|\.copy\s*\{|\.entry\s*\{|\.skip\s*\{|transform:|object-fit: fill/);
+  const experience = read("src/components/property-media/PropertyMediaExperience.tsx");
+  assert.equal((experience.match(/<video\b/g) || []).length, 1);
+  assert.match(experience, /reduced.current \? 220 : 1500/);
+  assert.match(experience, /playsInline preload="none"/);
+});
+
+test("Showcase watermark follows contained native media including resize and invalid metadata", () => {
+  const { containedVideoRect } = loadTS("src/components/property-media/property-media-disclosure.ts");
+  assert.deepEqual(containedVideoRect(800, 600, 1080, 1920), { left: 231.25, top: 0, width: 337.5, height: 600 });
+  assert.deepEqual(containedVideoRect(400, 600, 1920, 1080), { left: 0, top: 187.5, width: 400, height: 225 });
+  assert.deepEqual(containedVideoRect(300, 300, 800, 800), { left: 0, top: 0, width: 300, height: 300 });
+  for (const invalid of [0, -1, NaN, Infinity]) assert.equal(containedVideoRect(400, 600, invalid, 1080), null);
+});
+
+test("All works disclose showcase use; only verified spatial simulation gets AI disclosure", () => {
+  const { PropertyMediaLightbox } = loadComponent("src/components/property-media/PropertyMediaLightbox.tsx");
+  const { propertyMediaPortfolio } = loadTS("src/data/property-media-portfolio.ts");
+  const { showcaseDisclosure, hasSpatialSimulation } = loadTS("src/components/property-media/property-media-disclosure.ts");
+  for (const item of propertyMediaPortfolio) {
+    const tree = nodes(PropertyMediaLightbox({ item, onClose: () => {} }));
+    const content = JSON.stringify(tree);
+    assert.ok(content.includes(showcaseDisclosure.watermark));
+    assert.ok(content.includes(showcaseDisclosure.purpose));
+    assert.ok(content.includes(showcaseDisclosure.permission));
+    assert.equal(content.includes(showcaseDisclosure.simulation), item.category === "AI_STAGING");
+    assert.equal(hasSpatialSimulation(item), item.category === "AI_STAGING");
+    assert.equal(tree.filter(node => node.type === "video").length, 1);
+  }
+  const css = read("src/components/property-media/property-media.module.css");
+  assert.match(css, /\.showcaseWatermark\s*\{[^}]*opacity:\s*0\.20;[^}]*pointer-events:\s*none/s);
+  assert.doesNotMatch(css, /\.(?:lightboxVideo|lightboxFrame|lightboxInner)\s*\{[^}]*opacity:/s);
+  const source = read("src/components/property-media/PropertyMediaLightbox.tsx");
+  assert.match(source, /observer\.disconnect\(\)/);
+  assert.match(source, /removeEventListener\("fullscreenchange", update\)/);
+  assert.match(source, /aria-hidden="true"/);
+});
+
 test("Orbit and grid cards open the existing media directly through one native button", () => {
   const { PropertyMediaOrbitCard } = loadComponent("src/components/property-media/PropertyMediaOrbitCard.tsx");
   const { propertyMediaOrbitRing } = loadTS("src/data/property-media-vnext.ts");
