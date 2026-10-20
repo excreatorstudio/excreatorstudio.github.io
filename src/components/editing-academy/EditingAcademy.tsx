@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react";
 import { editingAssets, editingCourses, editingFaq, editingPortfolio, editingStarterLesson, getEditingLessonVideoPresentation, isApprovedEditingLessonStill, isLocalEditingMediaPath, type EditingCourse, type EditingLesson, type EditingLessonStep } from "@/data/editing-academy";
 import { publicAssetPath } from "@/lib/paths";
 import styles from "./editing-academy.module.css";
+import { HandbookEntry } from "@/components/editing-handbook/HandbookEntry";
+import { HandbookIntroPlayer } from "@/components/editing-handbook/HandbookIntroPlayer";
 
 type Theme = "system" | "light" | "dark";
 
@@ -172,7 +174,7 @@ export function EditingAcademy() {
     } else trigger.current?.focus();
   }
 
-  return <div className={styles.academy} data-editing-academy data-theme={theme}>
+  return <HandbookIntroPlayer><div className={styles.academy} data-editing-academy data-theme={theme}>
     <a className={styles.skip} href="#editing-content">跳至課程內容</a>
     <header className={styles.header}>
       <Link href="/ex-ai/" prefetch={false} className={styles.brand} aria-label="返回 EX AI"><b>E.X</b><span>EDITING<br />ACADEMY</span></Link>
@@ -205,6 +207,7 @@ export function EditingAcademy() {
 
     <div id="editing-content" className={styles.content}>
       <EditingLessonSection />
+      <HandbookEntry variant="academy" />
 
       <section id="free-lessons" className={styles.section} aria-labelledby="free-heading">
         <div className={styles.sectionHeading}><div><p className={styles.eyebrow}>01 / START CREATING</p><h2 id="free-heading">第一刀，從這裡開始。</h2></div><p>三個免費單元，建立剪輯的第一步。<br /><span>影片準備中 · 可先查看學習目標與課綱</span></p></div>
@@ -263,5 +266,5 @@ export function EditingAcademy() {
         <button className={styles.secondary} type="button" onClick={closeCourse}>返回課程列表 <Arrow /></button>
       </div>}
     </dialog>
-  </div>;
+  </div></HandbookIntroPlayer>;
 }

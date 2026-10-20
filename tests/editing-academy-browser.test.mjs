@@ -65,10 +65,11 @@ for (const width of [1440, 1024, 768, 430, 390, 320]) for (const theme of ["ligh
     assert.equal(await page.locator("#learning-steps video, #learning-steps iframe").count(), 0);
     for (const outcome of ["整理素材", "剪輯影片", "加入字幕", "搭配音樂", "輸出作品"]) assert.ok(await page.locator("#learning-steps ul").last().getByText(outcome, { exact: true }).isVisible());
     assert.equal(await page.locator("[data-course-id]").count(), 6);
-    assert.equal(await page.locator("video, iframe, form").count(), 0);
+    assert.equal(await page.locator("[data-editing-academy] video, [data-editing-academy] iframe, [data-editing-academy] form").count(), 0);
+    assert.equal(await page.locator("[data-handbook-intro] video[preload=none]").count(), 1);
     const media = await page.locator("[data-editing-academy] img").evaluateAll(images => images.map(image => ({ complete: image.complete, width: image.naturalWidth, alt: image.alt, src: image.currentSrc })));
     assert.ok(media.every(image => image.complete && image.width > 0 && image.alt));
-    if (width < 600) assert.ok(media.every(image => image.src.endsWith("studio-800.webp")));
+    if (width < 600) assert.ok(media.filter(image => image.src.includes("/images/editing-academy/")).every(image => image.src.endsWith("studio-800.webp")));
     await page.getByRole("link", { name: "免費開始學習", exact: false }).click();
     assert.ok(page.url().endsWith("#free-lessons"));
     await page.getByRole("link", { name: "探索付費課程", exact: false }).click();
@@ -180,7 +181,7 @@ test("failed image retains layout and usable navigation; reduced motion removes 
   await page.locator('[data-media-fallback="true"]').waitFor();
   const after = await page.locator('[aria-labelledby="editing-heading"]').boundingBox();
   assert.equal(before.height, after.height);
-  assert.equal(await page.locator("[data-editing-academy] img").count(), 0);
+  assert.equal(await page.locator('[aria-labelledby="editing-heading"] img').count(), 0);
   await page.getByRole("link", { name: "免費開始學習", exact: false }).click();
   assert.ok(page.url().endsWith("#free-lessons"));
   const transition = await page.getByRole("link", { name: "免費開始學習", exact: false }).evaluate(element => getComputedStyle(element).transitionDuration);

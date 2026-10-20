@@ -24,6 +24,7 @@ const navigation = await read("src/data/universe-navigation.ts");
 const styles = await read("src/app/universe-preview/universe-preview.module.css");
 const homepage = await read("src/app/page.tsx");
 const exAiPage = await read("src/app/ex-ai/page.tsx");
+const teachingResources = await read("src/components/editing-handbook/HandbookEntry.tsx");
 const creatorHero = await read("src/components/CreatorStudioHero.tsx");
 const header = await read("src/components/Header.tsx");
 const utilityHeader = await read("src/components/universe/UniverseHeader.tsx");
@@ -216,9 +217,12 @@ test("the central E.X Core enters the restored AI Creator Center route", async (
   assert.match(navigation, /subtitle: "創作中心 × 創作者學院"/);
   assert.match(navigation, /href: "\/ex-ai\//);
   assert.match(core, /href=\{universeCore\.href\}/);
-  for (const contract of ["CreatorStudioHero", "E\.X AI App Ecosystem", "AiLearningStationEntry", "CreatorAcademyPromo", "Creator Categories", "MembershipPreview", "Latest tutorial", "Popular resources", "PropertyMediaEntry"]) {
+  for (const contract of ["CreatorStudioHero", "E\.X AI App Ecosystem", "AiLearningStationEntry", "CreatorAcademyPromo", "Creator Categories", "MembershipPreview", "Latest tutorial", "TeachingResources", "PropertyMediaEntry"]) {
     assert.match(exAiPage, new RegExp(contract));
   }
+  assert.match(teachingResources, /<h2[^>]*>教學資源<\/h2>/);
+  assert.match(teachingResources, /<h3>免費資源庫<\/h3>/);
+  assert.match(teachingResources, /href="\/resources"/);
   assert.match(creatorHero, /E\.X AI 創作中心/);
   assert.match(creatorHero, /× 創作者學院/);
   assert.match(creatorHero, /creator-hero__circuit-overlay/);

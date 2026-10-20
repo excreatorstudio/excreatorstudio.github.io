@@ -15,6 +15,10 @@ desktop.ini
 *~
 .vscode/
 .idea/
+# Owner-provided full handbook source and layout evidence are private/local.
+/docs/editing-handbook/excreatorstudio-site-spec.md
+/docs/editing-handbook/references/
+/docs/editing-handbook/private/
 data/market-radar/raw/*
 !data/market-radar/raw/README.md
 !data/market-radar/raw/moi/

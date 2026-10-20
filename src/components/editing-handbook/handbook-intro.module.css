@@ -1,0 +1,34 @@
+.dialog { margin: auto; width: min(620px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; overflow: auto; border: 1px solid #81dfff55; border-radius: 22px; color: #eaf5ff; background: radial-gradient(ellipse at 50% 30%, #16406850, transparent 65%), #091525; box-shadow: 0 30px 120px #0009, inset 0 1px #fff1; color-scheme: dark; overscroll-behavior: contain; }
+.dialog:not([open]) { display: none; }
+.dialog::backdrop { background: #020814df; backdrop-filter: blur(9px); }
+.content { padding: 20px; }
+.heading { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.heading p { color: #8ddffc; font-size: 10px; letter-spacing: .15em; font-weight: 700; }
+.heading h2 { margin-top: 6px; font-size: clamp(17px, 2.4vw, 23px); font-weight: 650; letter-spacing: -.03em; line-height: 1.4; }
+.close { display: grid; flex: 0 0 44px; place-items: center; width: 44px; height: 44px; border: 1px solid #94d8ff40; border-radius: 50%; color: #e6f7ff; background: #17304a; }
+.description { color: #afc4dd; font-size: 12px; line-height: 1.7; margin: 4px 0 15px; }
+.portrait { position: relative; aspect-ratio: 9 / 16; width: min(100%, 340px, calc((100dvh - 250px) * .5625)); min-width: 100px; margin: auto; overflow: hidden; border-radius: 12px; background: #142d46; box-shadow: 0 0 40px #1eb5ff12; }
+.portrait video { display: block; width: 100%; height: 100%; object-fit: contain; }
+.endPoster { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.mediaError { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 16px; background: #0b1a2ee8; text-align: center; }
+.mediaError strong { font-size: 16px; }
+.mediaError p { font-size: 12px; color: #afc4dd; margin-top: 10px; line-height: 1.8; }
+.feedback { margin: 12px 0 6px; min-height: 20px; text-align: center; color: #b1c9df; font-size: 11px; line-height: 1.7; }
+.playPrompt { display: block; margin: 10px auto; min-height: 44px; padding: 10px 20px; background: #95e4ff; color: #092034; font-size: 14px; font-weight: 750; border-radius: 999px; }
+.actions { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 14px; border-top: 1px solid #8ed5ff26; padding-top: 8px; }
+.playActions { display: flex; flex-wrap: wrap; gap: 4px; }
+.playActions button { min-height: 44px; padding: 8px 12px; font-size: 12px; color: #bbd7ef; }
+.read { display: inline-flex; justify-content: center; align-items: center; min-height: 46px; padding: 10px 16px; border: 1px solid #9dedff7a; border-radius: 999px; color: #c0f3ff; font-size: 13px; font-weight: 700; }
+.dialog button:focus-visible, .dialog a:focus-visible { outline: 2px solid #b0edff; outline-offset: 3px; }
+.dialog button:hover, .read:hover { filter: brightness(1.12); }
+@media (max-width: 639px) {
+  .dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 20px); border-radius: 17px; }
+  .content { padding: 14px; }
+  .heading h2 { font-size: 17px; }
+  .heading p { font-size: 9px; }
+  .portrait { width: min(100%, calc((100dvh - 290px) * .5625)); }
+  .actions { justify-content: center; }
+  .read { width: 100%; }
+  .description { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .dialog, .dialog * { animation: none !important; transition: none !important; } }

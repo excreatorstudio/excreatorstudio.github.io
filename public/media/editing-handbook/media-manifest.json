@@ -1,0 +1,37 @@
+{
+  "ownerSource": {
+    "filename": "handbook-intro-24s.mp4",
+    "sha256": "506e07cfbe629ebaa1fb21fd7ae2cd3bfb9494a1fcd5b9b9cedcc352aaa75253",
+    "bytes": 22381517,
+    "preserved": true,
+    "includedInRuntime": false
+  },
+  "video": {
+    "src": "/media/editing-handbook/intro-24s.web.mp4",
+    "status": "APPROVED_LOCAL",
+    "bytes": 16947133,
+    "sha256": "d5790a7d141d44c8ca4924bda1833c2a8d49d86bb7e16e72d5a6f75f0b81ae8e",
+    "durationSeconds": 23.730998,
+    "width": 1080,
+    "height": 1920,
+    "fps": "60/1",
+    "videoCodec": "h264",
+    "profile": "High",
+    "pixelFormat": "yuv420p",
+    "audioCodec": "aac",
+    "audioBitstreamSha256": "e06c9a561adae4ddc1f70c94694a88c08c3ad3c1fe704feb110e67c66b0ad1df",
+    "audioCopiedWithoutReencoding": true,
+    "faststart": true,
+    "fit": "contain",
+    "poster": "/media/editing-handbook/intro-poster.webp"
+  },
+  "poster": {
+    "src": "/media/editing-handbook/intro-poster.webp",
+    "status": "APPROVED_LOCAL",
+    "extractedAtSeconds": 2,
+    "width": 540,
+    "height": 960,
+    "bytes": 76614
+  },
+  "sourceContentObservation": "Source already contains burned-in Chinese/English captions and terminology graphics; retained unchanged. No subtitle overlay or caption track added."
+}

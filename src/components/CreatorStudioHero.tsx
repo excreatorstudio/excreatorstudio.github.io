@@ -3,6 +3,8 @@ import { AIVideoCenterSwitch } from "@/components/AIVideoCenterSwitch";
 import { InteractiveGlassNavigator } from "@/components/InteractiveGlassNavigator";
 import { PersonalBrandShowcaseFloat } from "@/components/PersonalBrandShowcaseFloat";
 import { publicAssetPath } from "@/lib/paths";
+import { HandbookEntry } from "@/components/editing-handbook/HandbookEntry";
+import handbookStyles from "@/components/editing-handbook/editing-handbook.module.css";
 
 export function CreatorStudioHero() {
   return (
@@ -16,13 +18,18 @@ export function CreatorStudioHero() {
       />
       <div className="creator-hero__readability-mask" aria-hidden="true" />
       <div className="creator-hero__circuit-nodes" aria-hidden="true"><i /><i /><i /><i /><i /></div>
-      <div className="creator-hero__inner">
-        <div className="creator-hero__content">
+      <div className={`creator-hero__inner ${handbookStyles.heroComposition}`}>
+        <div className={`creator-hero__content ${handbookStyles.heroContent}`}>
           <p className="creator-hero__eyebrow">AI CREATIVE CENTER × CREATOR ACADEMY</p>
-          <h1 id="creator-studio-heading" className="creator-hero__title">
+          <div className={handbookStyles.heroHeading}>
+          <h1 id="creator-studio-heading" className="creator-hero__title" aria-label="E.X AI 創作中心 × 創作者學院">
             <span>E.X AI 創作中心</span>
-            <span className="creator-hero__title-accent">× 創作者學院</span>
+            <span className={handbookStyles.heroAcademyRow}>
+              <span className="creator-hero__title-accent">× 創作者學院</span>
+              <HandbookEntry variant="hero" />
+            </span>
           </h1>
+          </div>
           <p className="creator-hero__description">整合 AI 創作、短影音製作與系統化學習的專業平台，陪伴從靈感到作品，持續創造影響力。</p>
 
           <div className="creator-search" role="search">

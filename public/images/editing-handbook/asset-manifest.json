@@ -1,0 +1,54 @@
+{
+  "sourceFilename": "book-entry.png",
+  "sourceSha256": "f60a41fd56189a58bce6793089dbc7ad09d5c6c48dff0860d9bae069112ee3fa",
+  "sourceDimensions": [
+    1254,
+    1254
+  ],
+  "sourceUnchanged": true,
+  "referenceOnlyLayoutImageIncluded": false,
+  "heroAsset": {
+    "src": "/images/editing-handbook/book-entry.png",
+    "width": 1254,
+    "height": 1254,
+    "bytes": 1528318,
+    "format": "png",
+    "hasAlpha": true,
+    "status": "APPROVED_LOCAL",
+    "alt": "剪片說明書的藍色發光數位書",
+    "sha256": "f60a41fd56189a58bce6793089dbc7ad09d5c6c48dff0860d9bae069112ee3fa",
+    "usage": "Hero only; exact owner source. Other entries retain optimized derivatives."
+  },
+  "assets": [
+    {
+      "src": "/images/editing-handbook/book-256.webp",
+      "width": 256,
+      "height": 256,
+      "bytes": 21450,
+      "format": "webp",
+      "hasAlpha": true,
+      "status": "APPROVED_LOCAL",
+      "alt": "剪片說明書的藍色發光數位書"
+    },
+    {
+      "src": "/images/editing-handbook/book-512.webp",
+      "width": 512,
+      "height": 512,
+      "bytes": 62494,
+      "format": "webp",
+      "hasAlpha": true,
+      "status": "APPROVED_LOCAL",
+      "alt": "剪片說明書的藍色發光數位書"
+    },
+    {
+      "src": "/images/editing-handbook/book-960.webp",
+      "width": 960,
+      "height": 960,
+      "bytes": 175032,
+      "format": "webp",
+      "hasAlpha": true,
+      "status": "APPROVED_LOCAL",
+      "alt": "剪片說明書的藍色發光數位書"
+    }
+  ]
+}
